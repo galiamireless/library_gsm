@@ -1,0 +1,54 @@
+/* Configuración General */
+body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    color: #334155;
+}
+
+/* Transiciones en Enlaces */
+.hover-link {
+    transition: color 0.2s ease-in-out;
+}
+.hover-link:hover {
+    color: #60a5fa !important;
+}
+
+/* Navbar */
+.navbar {
+    background-color: #0f172a !important; /* Azul marino profundo */
+}
+
+.navbar-brand {
+    font-size: 1.25rem;
+    letter-spacing: -0.025em;
+}
+
+/* Tarjetas y Sombras */
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Botones */
+.btn-primary {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+.btn-primary:hover {
+    background-color: #1d4ed8;
+    border-color: #1d4ed8;
+}
+
+/* Tablas */
+.table thead th {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
