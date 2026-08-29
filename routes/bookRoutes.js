@@ -1,6 +1,12 @@
 // ===================================================================
 // Rutas de Libros
 // Catálogo, Búsqueda, Detalles
+
+// GET: Redirigir la raíz del enrutador de libros al catálogo
+router.get('/', (req, res) => {
+    res.redirect('/books/catalog');
+});
+
 // ===================================================================
 
 const express = require('express');
