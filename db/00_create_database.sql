@@ -1,0 +1,28 @@
+-- ===================================================================
+-- SCRIPT 00: Creación de Base de Datos y Usuario
+-- PostgreSQL - Sistema de Gestión de Librería
+-- ===================================================================
+
+-- Eliminar BD existente (solo si existe en desarrollo)
+DROP DATABASE IF EXISTS gsm_library_db;
+DROP USER IF EXISTS lib_gsm_user;
+
+-- Crear usuario con permisos mínimos
+CREATE USER lib_gsm_user WITH PASSWORD 'lib_gsm_user666';
+
+-- Crear base de datos
+CREATE DATABASE gsm_library_db
+    OWNER lib_gsm_user
+    ENCODING 'UTF8'
+    LOCALE 'C'
+    TEMPLATE template0;
+
+-- Conectar a la base de datos
+\c gsm_library_db
+
+-- Asignar permisos básicos
+GRANT CONNECT ON DATABASE gsm_library_db TO lib_gsm_user;
+GRANT USAGE ON SCHEMA public TO lib_gsm_user;
+
+-- Crear extensiones necesarias
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
