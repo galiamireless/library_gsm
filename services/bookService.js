@@ -105,6 +105,9 @@ async function getAllBooks(page = 1, perPage = 10, category = '') {
             `SELECT 
                 b.isbn, b.title, b.description, b.price, b.stock, b.publication_year,
                 (SELECT bi.image_url FROM book_images bi WHERE bi.isbn = b.isbn ORDER BY bi.is_cover DESC, bi.uploaded_at LIMIT 1) AS cover_image,
+                (SELECT string_agg(g.name, ', ' ORDER BY g.name)
+                 FROM book_genres bg INNER JOIN genres g ON g.genre_id = bg.genre_id
+                 WHERE bg.isbn = b.isbn) AS genres,
                 STRING_AGG(DISTINCT a.name, ', ') as authors,
                 COUNT(*) OVER () as total_count
             FROM books b

@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const setTheme = (theme) => {
         const selectedTheme = theme === 'dark' ? 'dark' : 'light';
         root.setAttribute('data-theme', selectedTheme);
+        root.classList.toggle('dark', selectedTheme === 'dark');
         if (themeIcon) {
             themeIcon.className = selectedTheme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
         }

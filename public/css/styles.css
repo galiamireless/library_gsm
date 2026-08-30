@@ -24,7 +24,8 @@
     --search-border: rgba(255, 255, 255, 0.12);
 }
 
-html[data-theme="dark"] {
+html[data-theme="dark"],
+html.dark {
     --bg-primary: #0b0f19;
     --bg-secondary: #111827;
     --card-bg: #111827;

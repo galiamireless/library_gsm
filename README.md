@@ -143,6 +143,9 @@ psql -U lib_gsm_user -d gsm_library_db -f db/02_seed_100_real_books.sql
 psql -U lib_gsm_user -d gsm_library_db -f db/04_stored_procedures.sql
 psql -U lib_gsm_user -d gsm_library_db -f db/05_triggers.sql
 psql -U lib_gsm_user -d gsm_library_db -f db/06_views.sql
+# Completar mínimos de datos y generar salida para evidencias
+psql -U lib_gsm_user -d gsm_library_db -f db/07_complete_report_data.sql
+psql -U lib_gsm_user -d gsm_library_db -f db/08_report_evidence.sql
 npm start
 ```
 
@@ -162,6 +165,10 @@ pm2 startup
 ```
 
 Configura NGINX para reenviar `/library/` al puerto de Node y conserva el prefijo al enviar los headers. Los detalles de firewall y proxy están en `docs/GCP_COMMANDS.md`.
+
+## Verificación automática
+
+Con el servidor activo, ejecuta `npm run verify` para comprobar rutas, assets, búsqueda y filtro de género. Las pruebas de seguridad y la lista de capturas están en `docs/SECURITY_TESTS.md`.
 
 ---
 
