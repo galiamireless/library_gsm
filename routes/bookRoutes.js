@@ -11,7 +11,7 @@ const { asyncHandler } = require('../middleware/errorMiddleware');
 
 // GET: Redirigir la raíz del enrutador de libros al catálogo
 router.get('/', (req, res) => {
-    res.redirect('/books/catalog');
+    res.redirect('/library/books/catalog');
 });
 
 // GET: Catálogo de libros
