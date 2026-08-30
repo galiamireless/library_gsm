@@ -222,12 +222,20 @@ img {
     letter-spacing: -0.04em;
 }
 
+.hero-panel .text-primary-emphasis {
+    color: #bfdbfe !important;
+}
+
 .hero-panel .search-box {
     background: var(--search-bg);
     border: 1px solid var(--search-border);
     border-radius: 1rem;
     color: #fff;
     padding: 0.6rem 1rem;
+}
+
+.card-footer.bg-white {
+    background: var(--card-bg) !important;
 }
 
 .form-card {

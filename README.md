@@ -1,4 +1,4 @@
-# 📚 Aplicación de Gestión de Librería - Monolítica MVC
+# Library UDEM - Aplicación Monolítica MVC
 
 Aplicación web para la gestión de una librería universitaria construida con **Node.js**, **Express.js**, **PostgreSQL** y **EJS**. Implementa arquitectura monolítica, patrón MVC, y base de datos normalizada a **4FN**.
 
@@ -82,16 +82,12 @@ npm install
 # Crear BD y usuario PostgreSQL
 psql -U postgres -f db/00_create_database.sql
 
-# Crear esquema y tablas (4FN)
-psql -U library_user -d library_db -f db/01_schema.sql
-
-# Cargar datos de prueba (30+ por tabla)
-psql -U library_user -d library_db -f db/02_seed_30_per_table.sql
-
-# Agregar procedimientos y triggers
-psql -U library_user -d library_db -f db/04_stored_procedures.sql
-psql -U library_user -d library_db -f db/05_triggers.sql
-psql -U library_user -d library_db -f db/06_views.sql
+# Crear esquema, datos, procedimientos, triggers y vistas
+psql -U lib_gsm_user -d gsm_library_db -f db/01_schema.sql
+psql -U lib_gsm_user -d gsm_library_db -f db/02_seed_100_real_books.sql
+psql -U lib_gsm_user -d gsm_library_db -f db/04_stored_procedures.sql
+psql -U lib_gsm_user -d gsm_library_db -f db/05_triggers.sql
+psql -U lib_gsm_user -d gsm_library_db -f db/06_views.sql
 ```
 
 ### 4. Configurar ambiente
@@ -120,21 +116,52 @@ http://localhost:3000
 
 ---
 
-## 🔑 Credenciales Iniciales (Demo)
+## Credenciales Iniciales (Demo)
 
 ```
 Administrador:
   Username: admin
   Email: admin@library.local
-  Password: admin_password_change_me
+  Password: admin123 (solo demo; cambiar en producción)
 
 Usuarios regulares:
-  Username: jdoe, jsmith, mgarcia, alopez, cchen, etc.
-  Password: password123
-  Email: usuario@library.local
+  Username: jdoe, jsmith, mgarcia, alopez, cchen, erodrigue, kmuller, fmartin, rkim
+  Password: usuario123 (solo demo; cambiar en producción)
+  Emails: john.doe@example.com, jane.smith@example.com, maria.garcia@example.com, etc.
 ```
 
 **⚠️ IMPORTANTE**: Cambiar contraseñas inmediatamente en producción.
+
+## Despliegue local
+
+```bash
+cd E2/library
+npm install
+psql -U postgres -f db/00_create_database.sql
+psql -U lib_gsm_user -d gsm_library_db -f db/01_schema.sql
+psql -U lib_gsm_user -d gsm_library_db -f db/02_seed_100_real_books.sql
+psql -U lib_gsm_user -d gsm_library_db -f db/04_stored_procedures.sql
+psql -U lib_gsm_user -d gsm_library_db -f db/05_triggers.sql
+psql -U lib_gsm_user -d gsm_library_db -f db/06_views.sql
+npm start
+```
+
+La aplicación queda disponible en `http://localhost:3000`. Para el despliegue detrás de NGINX, publícala bajo `/library` y conserva `PORT`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` y `SESSION_SECRET` en `.env`.
+
+## Despliegue en GCP con PM2
+
+```bash
+sudo apt update && sudo apt install -y nodejs npm postgresql nginx
+cd /opt/library/E2/library
+npm ci --omit=dev
+npm start
+sudo npm install -g pm2
+pm2 start app.js --name library-udem
+pm2 save
+pm2 startup
+```
+
+Configura NGINX para reenviar `/library/` al puerto de Node y conserva el prefijo al enviar los headers. Los detalles de firewall y proxy están en `docs/GCP_COMMANDS.md`.
 
 ---
 

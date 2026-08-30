@@ -18,8 +18,12 @@ router.get('/', (req, res) => {
 router.get('/catalog', asyncHandler(async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const perPage = 10;
+    const category = typeof req.query.category === 'string' ? req.query.category.trim() : '';
 
-    const result = await bookService.getAllBooks(page, perPage);
+    const [result, genresResult] = await Promise.all([
+        bookService.getAllBooks(page, perPage, category),
+        bookService.getGenres()
+    ]);
 
     if (!result.success) {
         return res.status(500).render('error', {
@@ -37,7 +41,9 @@ router.get('/catalog', asyncHandler(async (req, res) => {
         page,
         perPage,
         totalPages,
-        totalCount: result.totalCount || 0
+        totalCount: result.totalCount || 0,
+        category,
+        genres: genresResult.genres || []
     });
 }));
 

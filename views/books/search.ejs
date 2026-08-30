@@ -46,7 +46,7 @@
                         <div class="col-md-6 col-xl-4">
                             <article class="card book-card h-100">
                                 <div class="card-body p-0">
-                                    <% const imageUrl = book.images && book.images.length ? book.images[0].image_url : ''; const imageSrc = imageUrl && /^https?:\/\//i.test(imageUrl) ? imageUrl.replace(/^https:/i, 'http:') : imageUrl ? `${baseUrl || ''}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}` : `${baseUrl || ''}/images/default-cover.svg`; %>
+                                    <% const imageUrl = book.cover_image || (book.images && book.images.length ? book.images[0].image_url : ''); const imageSrc = imageUrl && /^https?:\/\//i.test(imageUrl) ? imageUrl.replace(/^https:/i, 'http:') : imageUrl ? `${baseUrl || ''}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}` : `${baseUrl || ''}/images/default-cover.svg`; %>
                                     <img src="<%= imageSrc %>" alt="<%= book.title %>" class="book-cover w-100" onerror="this.onerror=null;this.src='<%= baseUrl || '' %>/images/default-cover.svg';">
                                     <div class="p-3">
                                         <h3 class="h5 fw-bold mb-2"><%= book.title %></h3>

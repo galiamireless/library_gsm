@@ -5,9 +5,8 @@
 
 -- Insertar Administrador Único
 INSERT INTO users (username, email, password_hash, full_name, role, is_active) VALUES
-('admin', 'admin@library.local', '$2b$10$x9.V5gSBCJDcRHjAYlhsm.xQfXp0lPGGPPvLp9pRXqJvB5P8bVBOO', 'Administrator', 'ADMIN', TRUE);
+('admin', 'admin@library.local', '$2b$10$QF0tnNhrp6m3k35UfJHnuu6NK7fJcTFKmi9NBHW/xnzQ/68Jlf/ni', 'Administrator', 'ADMIN', TRUE);
 
--- Insertar Usuarios Regulares
 INSERT INTO users (username, email, password_hash, full_name, role, is_active) VALUES
 ('jdoe', 'john.doe@example.com', '$2b$10$x9.V5gSBCJDcRHjAYlhsm.xQfXp0lPGGPPvLp9pRXqJvB5P8bVBOO', 'John Doe', 'USER', TRUE),
 ('jsmith', 'jane.smith@example.com', '$2b$10$x9.V5gSBCJDcRHjAYlhsm.xQfXp0lPGGPPvLp9pRXqJvB5P8bVBOO', 'Jane Smith', 'USER', TRUE),
@@ -18,6 +17,15 @@ INSERT INTO users (username, email, password_hash, full_name, role, is_active) V
 ('kmuller', 'klaus.muller@example.com', '$2b$10$x9.V5gSBCJDcRHjAYlhsm.xQfXp0lPGGPPvLp9pRXqJvB5P8bVBOO', 'Klaus Müller', 'USER', TRUE),
 ('fmartin', 'florence.martin@example.com', '$2b$10$x9.V5gSBCJDcRHjAYlhsm.xQfXp0lPGGPPvLp9pRXqJvB5P8bVBOO', 'Florence Martin', 'USER', TRUE),
 ('rkim', 'rosa.kim@example.com', '$2b$10$x9.V5gSBCJDcRHjAYlhsm.xQfXp0lPGGPPvLp9pRXqJvB5P8bVBOO', 'Rosa Kim', 'USER', TRUE);
+('jdoe', 'john.doe@example.com', '$2b$10$6nK3iL7UMNFCERAeGOxuju1.6jV/uyW/v6WKrZtR5t.eSzLPverr.', 'John Doe', 'USER', TRUE),
+('jsmith', 'jane.smith@example.com', '$2b$10$6nK3iL7UMNFCERAeGOxuju1.6jV/uyW/v6WKrZtR5t.eSzLPverr.', 'Jane Smith', 'USER', TRUE),
+('mgarcia', 'maria.garcia@example.com', '$2b$10$6nK3iL7UMNFCERAeGOxuju1.6jV/uyW/v6WKrZtR5t.eSzLPverr.', 'María García', 'USER', TRUE),
+('alopez', 'alex.lopez@example.com', '$2b$10$6nK3iL7UMNFCERAeGOxuju1.6jV/uyW/v6WKrZtR5t.eSzLPverr.', 'Alejandro López', 'USER', TRUE),
+('cchen', 'carlos.chen@example.com', '$2b$10$6nK3iL7UMNFCERAeGOxuju1.6jV/uyW/v6WKrZtR5t.eSzLPverr.', 'Carlos Chen', 'USER', TRUE),
+('erodrigue', 'emma.rodriguez@example.com', '$2b$10$6nK3iL7UMNFCERAeGOxuju1.6jV/uyW/v6WKrZtR5t.eSzLPverr.', 'Emma Rodríguez', 'USER', TRUE),
+('kmuller', 'klaus.muller@example.com', '$2b$10$6nK3iL7UMNFCERAeGOxuju1.6jV/uyW/v6WKrZtR5t.eSzLPverr.', 'Klaus Müller', 'USER', TRUE),
+('fmartin', 'florence.martin@example.com', '$2b$10$6nK3iL7UMNFCERAeGOxuju1.6jV/uyW/v6WKrZtR5t.eSzLPverr.', 'Florence Martin', 'USER', TRUE),
+('rkim', 'rosa.kim@example.com', '$2b$10$6nK3iL7UMNFCERAeGOxuju1.6jV/uyW/v6WKrZtR5t.eSzLPverr.', 'Rosa Kim', 'USER', TRUE);
 
 -- Insertar Formatos
 INSERT INTO formats (name, description) VALUES

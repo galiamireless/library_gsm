@@ -60,8 +60,8 @@ const fallbackBooks = [
     }
 ];
 
-function getFallbackCatalog(page = 1, perPage = 10) {
-    const books = fallbackBooks.map((book) => ({
+function getFallbackCatalog(page = 1, perPage = 10, category = '') {
+    const books = fallbackBooks.filter((book) => !category || book.genres === category).map((book) => ({
         ...book,
         publication_year: book.publication_year || 'N/A',
         stock: Number(book.stock) || 0,
@@ -76,7 +76,8 @@ function getFallbackCatalog(page = 1, perPage = 10) {
         books: pagedBooks,
         totalCount: books.length,
         page,
-        perPage
+        perPage,
+        category
     };
 }
 
@@ -96,22 +97,28 @@ function getFallbackBookByISBN(isbn) {
 }
 
 // Obtener todos los libros con paginación
-async function getAllBooks(page = 1, perPage = 10) {
+async function getAllBooks(page = 1, perPage = 10, category = '') {
     try {
         const offset = (page - 1) * perPage;
 
         const result = await db.query(
             `SELECT 
                 b.isbn, b.title, b.description, b.price, b.stock, b.publication_year,
+                (SELECT bi.image_url FROM book_images bi WHERE bi.isbn = b.isbn ORDER BY bi.is_cover DESC, bi.uploaded_at LIMIT 1) AS cover_image,
                 STRING_AGG(DISTINCT a.name, ', ') as authors,
                 COUNT(*) OVER () as total_count
             FROM books b
             LEFT JOIN book_authors ba ON b.isbn = ba.isbn
             LEFT JOIN authors a ON ba.author_id = a.author_id
+            WHERE ($1 = '' OR EXISTS (
+                SELECT 1 FROM book_genres filter_bg
+                INNER JOIN genres filter_g ON filter_g.genre_id = filter_bg.genre_id
+                WHERE filter_bg.isbn = b.isbn AND filter_g.name = $1
+            ))
             GROUP BY b.isbn, b.title, b.description, b.price, b.stock, b.publication_year
             ORDER BY b.title ASC
-            LIMIT $1 OFFSET $2`,
-            [perPage, offset]
+            LIMIT $2 OFFSET $3`,
+            [category, perPage, offset]
         );
 
         return {
@@ -122,7 +129,7 @@ async function getAllBooks(page = 1, perPage = 10) {
             perPage: perPage
         };
     } catch (error) {
-        return getFallbackCatalog(page, perPage);
+        return getFallbackCatalog(page, perPage, category);
     }
 }
 
@@ -176,12 +183,13 @@ async function searchBooks(searchTerm, minPrice = 0, maxPrice = 999999, page = 1
         const result = await db.query(
             `SELECT 
                 DISTINCT b.isbn, b.title, b.description, b.price, b.stock, b.publication_year,
+                (SELECT bi.image_url FROM book_images bi WHERE bi.isbn = b.isbn ORDER BY bi.is_cover DESC, bi.uploaded_at LIMIT 1) AS cover_image,
                 STRING_AGG(DISTINCT a.name, ', ') as authors,
                 COUNT(*) OVER () as total_count
             FROM books b
             LEFT JOIN book_authors ba ON b.isbn = ba.isbn
             LEFT JOIN authors a ON ba.author_id = a.author_id
-            WHERE (b.title ILIKE $1 OR b.isbn ILIKE $1 OR b.description ILIKE $1)
+            WHERE (b.title ILIKE $1 OR b.isbn ILIKE $1 OR b.description ILIKE $1 OR a.name ILIKE $1)
               AND b.price BETWEEN $2 AND $3
             GROUP BY b.isbn, b.title, b.description, b.price, b.stock, b.publication_year
             ORDER BY b.title ASC
@@ -252,6 +260,18 @@ async function getAvailableBooks(page = 1, perPage = 10) {
             totalCount: filtered.length,
             page,
             perPage
+        };
+    }
+}
+
+async function getGenres() {
+    try {
+        const result = await db.query('SELECT genre_id, name FROM genres ORDER BY name');
+        return { success: true, genres: result.rows };
+    } catch (error) {
+        return {
+            success: true,
+            genres: [...new Set(fallbackBooks.map((book) => book.genres))].map((name) => ({ name }))
         };
     }
 }
@@ -468,6 +488,7 @@ module.exports = {
     getBookByISBN,
     searchBooks,
     getAvailableBooks,
+    getGenres,
     createBook,
     updateBook,
     deleteBook,

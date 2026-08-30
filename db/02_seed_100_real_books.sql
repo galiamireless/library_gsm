@@ -6,7 +6,7 @@
 -- Usuarios base
 INSERT INTO users (username, email, password_hash, full_name, role, is_active)
 VALUES
-('admin', 'admin@library.local', '$2b$10$x9.V5gSBCJDcRHjAYlhsm.xQfXp0lPGGPPvLp9pRXqJvB5P8bVBOO', 'Administrator', 'ADMIN', TRUE)
+('admin', 'admin@library.local', '$2b$10$QF0tnNhrp6m3k35UfJHnuu6NK7fJcTFKmi9NBHW/xnzQ/68Jlf/ni', 'Administrator', 'ADMIN', TRUE)
 ON CONFLICT (username) DO NOTHING;
 
 -- Formatos
