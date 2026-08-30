@@ -1,20 +1,18 @@
 // ===================================================================
 // Rutas de Libros
 // Catálogo, Búsqueda, Detalles
-
-// GET: Redirigir la raíz del enrutador de libros al catálogo
-router.get('/', (req, res) => {
-    res.redirect('/books/catalog');
-});
-
 // ===================================================================
 
 const express = require('express');
 const router = express.Router();
 const bookService = require('../services/bookService');
 const conceptService = require('../services/conceptService');
-const { isLoggedIn } = require('../middleware/authMiddleware');
 const { asyncHandler } = require('../middleware/errorMiddleware');
+
+// GET: Redirigir la raíz del enrutador de libros al catálogo
+router.get('/', (req, res) => {
+    res.redirect('/books/catalog');
+});
 
 // GET: Catálogo de libros
 router.get('/catalog', asyncHandler(async (req, res) => {
@@ -24,7 +22,8 @@ router.get('/catalog', asyncHandler(async (req, res) => {
     const result = await bookService.getAllBooks(page, perPage);
 
     if (!result.success) {
-        return res.render('error', {
+        return res.status(500).render('error', {
+            title: 'Error',
             message: 'Error loading catalog',
             error: { status: 500, details: result.error }
         });
@@ -34,11 +33,11 @@ router.get('/catalog', asyncHandler(async (req, res) => {
 
     res.render('books/catalog', {
         title: 'Book Catalog',
-        books: result.books,
-        page: page,
-        perPage: perPage,
-        totalPages: totalPages,
-        totalCount: result.totalCount
+        books: result.books || [],
+        page,
+        perPage,
+        totalPages,
+        totalCount: result.totalCount || 0
     });
 }));
 
@@ -58,27 +57,28 @@ router.get('/search', asyncHandler(async (req, res) => {
         const result = await bookService.searchBooks(searchTerm, minPrice, maxPrice, page, perPage);
 
         if (!result.success) {
-            return res.render('error', {
+            return res.status(500).render('error', {
+                title: 'Error',
                 message: 'Error searching books',
                 error: { status: 500, details: result.error }
             });
         }
 
-        books = result.books;
-        totalCount = result.totalCount;
+        books = result.books || [];
+        totalCount = result.totalCount || 0;
         totalPages = Math.ceil(totalCount / perPage);
     }
 
     res.render('books/search', {
         title: 'Search Books',
-        books: books,
-        searchTerm: searchTerm,
-        minPrice: minPrice,
-        maxPrice: maxPrice,
-        page: page,
-        perPage: perPage,
-        totalPages: totalPages,
-        totalCount: totalCount
+        books,
+        searchTerm,
+        minPrice,
+        maxPrice,
+        page,
+        perPage,
+        totalPages,
+        totalCount
     });
 }));
 
@@ -90,19 +90,19 @@ router.get('/detail/:isbn', asyncHandler(async (req, res) => {
 
     if (!bookResult.success) {
         return res.status(404).render('error', {
+            title: 'Error',
             message: 'Book Not Found',
             error: { status: 404, details: 'The requested book does not exist' }
         });
     }
 
-    // Obtener conceptos del libro
     const conceptsResult = await conceptService.getBookConcepts(isbn);
     const concepts = conceptsResult.success ? conceptsResult.concepts : [];
 
     res.render('books/detail', {
         title: bookResult.book.title,
         book: bookResult.book,
-        concepts: concepts
+        concepts
     });
 }));
 
@@ -114,21 +114,22 @@ router.get('/available', asyncHandler(async (req, res) => {
     const result = await bookService.getAvailableBooks(page, perPage);
 
     if (!result.success) {
-        return res.render('error', {
+        return res.status(500).render('error', {
+            title: 'Error',
             message: 'Error loading available books',
             error: { status: 500, details: result.error }
         });
     }
 
-    const totalPages = Math.ceil(result.totalCount / perPage);
+    const totalPages = Math.ceil((result.totalCount || 0) / perPage);
 
     res.render('books/available', {
         title: 'Available Books',
-        books: result.books,
-        page: page,
-        perPage: perPage,
-        totalPages: totalPages,
-        totalCount: result.totalCount
+        books: result.books || [],
+        page,
+        perPage,
+        totalPages,
+        totalCount: result.totalCount || 0
     });
 }));
 

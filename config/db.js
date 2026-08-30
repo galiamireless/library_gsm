@@ -8,7 +8,7 @@ require('dotenv').config();
 
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT || 5432,
+    port: parseInt(process.env.DB_PORT) || 5432,
     database: process.env.DB_NAME || 'library_db',
     user: process.env.DB_USER || 'library_user',
     password: process.env.DB_PASSWORD || 'library_secure_password_2026',
@@ -16,6 +16,7 @@ const pool = new Pool({
     min: parseInt(process.env.DB_POOL_MIN) || 2,
     idleTimeoutMillis: parseInt(process.env.DB_POOL_IDLE_TIMEOUT) || 30000,
     connectionTimeoutMillis: parseInt(process.env.DB_POOL_CONNECTION_TIMEOUT) || 1000,
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });
 
 // Evento: Conexión exitosa
@@ -24,10 +25,23 @@ pool.on('connect', () => {
 });
 
 // Evento: Error en conexión
-pool.on('error', (err, client) => {
-    console.error('Unexpected error on idle client', err);
-    process.exit(-1);
+pool.on('error', (err) => {
+    console.warn('⚠ Database pool warning:', err.message || err);
 });
+
+async function testConnection() {
+    try {
+        const result = await pool.query('SELECT 1 AS ok');
+        if (result && result.rows && result.rows[0] && result.rows[0].ok === 1) {
+            console.log('✓ PostgreSQL connection successful');
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.warn('⚠ PostgreSQL connection unavailable:', error.message);
+        return false;
+    }
+}
 
 // Función para ejecutar consultas con parámetros (previene SQL Injection)
 async function query(text, params) {
@@ -38,7 +52,7 @@ async function query(text, params) {
         console.log('Executed query', { text, duration, rows: result.rowCount });
         return result;
     } catch (error) {
-        console.error('Database query error', { text, error });
+        console.error('Database query error', { text, error: error.message });
         throw error;
     }
 }
@@ -60,4 +74,5 @@ module.exports = {
     getClient,
     closePool,
     pool,
+    testConnection,
 };

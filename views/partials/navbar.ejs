@@ -1,71 +1,55 @@
-<nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-    <div class="container-fluid px-4">
-        <!-- Brand -->
-        <a class="navbar-brand fw-bold" href="/" style="font-size: 1.4rem; letter-spacing: 0.5px;">
-            <i class="fa-solid fa-book-bookmark" style="color: #2563eb;"></i>
-            <span class="ms-2">Librería UDEM</span>
+<nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
+    <div class="container">
+        <a class="navbar-brand" href="/">
+            <i class="fa-solid fa-book-bookmark"></i>
+            <span>Librería UDEM</span>
         </a>
 
-        <!-- Toggle Button Mobile -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <!-- Navigation Links -->
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto gap-2">
-                <!-- Public Links -->
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
                 <li class="nav-item">
-                    <a class="nav-link" href="/books/catalog" style="transition: all 0.3s;">
-                        <i class="fa-solid fa-book"></i> Catálogo
-                    </a>
+                    <a class="nav-link" href="/books/catalog"><i class="fa-solid fa-book"></i> Catálogo</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/books/search" style="transition: all 0.3s;">
-                        <i class="fa-solid fa-magnifying-glass"></i> Buscar
-                    </a>
+                    <a class="nav-link" href="/books/search"><i class="fa-solid fa-magnifying-glass"></i> Buscar</a>
                 </li>
 
-                <!-- Authenticated User Menu -->
                 <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
                     <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
-                        <!-- Admin Dropdown -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="transition: all 0.3s;">
-                                <i class="fa-solid fa-crown" style="color: #059669;"></i> Admin
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-crown"></i> Administrador
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-dark" style="background: #0f172a; border: 1px solid #2563eb;">
+                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
                                 <li><a class="dropdown-item" href="/admin/dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
-                                <li><a class="dropdown-item" href="/admin/books/new"><i class="fa-solid fa-plus"></i> Nuevo Libro</a></li>
+                                <li><a class="dropdown-item" href="/admin/books/new"><i class="fa-solid fa-plus"></i> Nuevo libro</a></li>
                                 <li><a class="dropdown-item" href="/concepts/concepts"><i class="fa-solid fa-lightbulb"></i> Conceptos</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="/auth/logout"><i class="fa-solid fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                                <li><a class="dropdown-item" href="/auth/logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</a></li>
                             </ul>
                         </li>
                     <% } else { %>
-                        <!-- Regular User Dropdown -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="transition: all 0.3s;">
-                                <i class="fa-solid fa-user-circle" style="color: #2563eb;"></i> Usuario
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-user-circle"></i> Usuario
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-dark" style="background: #0f172a; border: 1px solid #2563eb;">
-                                <li><a class="dropdown-item" href="/profile"><i class="fa-solid fa-user"></i> Mi Perfil</a></li>
+                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                                <li><a class="dropdown-item" href="/books/catalog"><i class="fa-solid fa-user"></i> Mi cuenta</a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="/auth/logout"><i class="fa-solid fa-sign-out-alt"></i> Cerrar Sesión</a></li>
+                                <li><a class="dropdown-item" href="/auth/logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</a></li>
                             </ul>
                         </li>
                     <% } %>
                 <% } else { %>
-                    <!-- Guest Links -->
                     <li class="nav-item">
-                        <a class="nav-link btn btn-outline-light btn-sm px-3" href="/auth/login" style="transition: all 0.3s;">
-                            <i class="fa-solid fa-sign-in-alt"></i> Iniciar Sesión
-                        </a>
+                        <a class="nav-link btn btn-outline-light btn-sm px-3" href="/auth/login"><i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn btn-primary btn-sm px-3" href="/auth/register" style="background-color: #2563eb; border-color: #2563eb; transition: all 0.3s;">
-                            <i class="fa-solid fa-user-plus"></i> Registrarse
-                        </a>
+                        <a class="nav-link btn btn-primary btn-sm px-3" href="/auth/register"><i class="fa-solid fa-user-plus"></i> Registrarse</a>
                     </li>
                 <% } %>
             </ul>

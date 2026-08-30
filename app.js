@@ -14,11 +14,7 @@ require('dotenv').config();
 
 // Importar configuración y middleware
 const db = require('./config/db');
-const {
-    errorHandler,
-    notFoundHandler,
-    asyncHandler
-} = require('./middleware/errorMiddleware');
+const { errorHandler, notFoundHandler } = require('./middleware/errorMiddleware');
 const { attachUserToLocals } = require('./middleware/authMiddleware');
 
 // Importar rutas
@@ -35,11 +31,7 @@ const NODE_ENV = process.env.NODE_ENV || 'development';
 // ===================================================================
 // CONFIGURACIÓN DE SEGURIDAD
 // ===================================================================
-
-// Helmet: Protecciones HTTP headers
 app.use(helmet());
-
-// CORS: Control de origen cruzado
 app.use(cors({
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     credentials: true
@@ -48,24 +40,17 @@ app.use(cors({
 // ===================================================================
 // CONFIGURACIÓN DE VISTAS Y ARCHIVOS ESTÁTICOS
 // ===================================================================
-
-// Motor de plantillas: EJS
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-
-// Archivos estáticos: CSS, JS, Imágenes
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ===================================================================
 // MIDDLEWARE DE PARSEO Y LOGGING
 // ===================================================================
-
-// Body parser: Formularios URL-encoded
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.json({ limit: '10mb' }));
 
-// Logging: Morgan
 if (NODE_ENV === 'development') {
     app.use(morgan('dev'));
 } else {
@@ -75,7 +60,6 @@ if (NODE_ENV === 'development') {
 // ===================================================================
 // CONFIGURACIÓN DE SESIONES
 // ===================================================================
-
 app.use(session({
     store: new pgSession({
         pool: db.pool,
@@ -86,61 +70,54 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.SESSION_COOKIE_SECURE === 'true', // HTTPS en producción
+        secure: process.env.SESSION_COOKIE_SECURE === 'true',
         httpOnly: process.env.SESSION_COOKIE_HTTPONLY !== 'false',
         sameSite: process.env.SESSION_COOKIE_SAMESITE || 'Lax',
-        maxAge: parseInt(process.env.SESSION_MAX_AGE) || 86400000 // 24 horas
+        maxAge: parseInt(process.env.SESSION_MAX_AGE) || 86400000
     }
 }));
 
 // ===================================================================
 // MIDDLEWARE GLOBAL
 // ===================================================================
-
-// Adjuntar información del usuario a res.locals
 app.use(attachUserToLocals);
 
 // ===================================================================
 // RUTAS DE LA APLICACIÓN
 // ===================================================================
-
-// Ruta principal: Redireccionar a catálogo
 app.get('/', (req, res) => {
     res.redirect('/books/catalog');
 });
 
-// Rutas de autenticación
+app.get('/library', (req, res) => {
+    res.redirect('/books/catalog');
+});
+
+app.get('/books', (req, res) => {
+    res.redirect('/books/catalog');
+});
+
+app.get('/admin', (req, res) => {
+    res.redirect('/admin/dashboard');
+});
+
+app.get('/auth', (req, res) => {
+    res.redirect('/auth/login');
+});
+
 app.use('/auth', authRoutes);
-
-// Rutas de libros (catálogo público)
 app.use('/books', bookRoutes);
-
-// Rutas administrativas
 app.use('/admin', adminRoutes);
-
-// Rutas de conceptos
 app.use('/concepts', conceptRoutes);
 
-// Health check (para monitoring)
 app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// ===================================================================
-// MANEJO DE ERRORES
-// ===================================================================
-
-// Middleware 404: Recursos no encontrados
 app.use(notFoundHandler);
-
-// Middleware: Manejador global de errores
 app.use(errorHandler);
 
-// ===================================================================
-// INICIALIZACIÓN DEL SERVIDOR
-// ===================================================================
-
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
     console.log(`
     ╔═══════════════════════════════════════╗
     ║   Library Management System Started   ║
@@ -150,13 +127,13 @@ const server = app.listen(PORT, () => {
     ║ Port:    ${PORT}                        ║
     ╚═══════════════════════════════════════╝
     `);
+
+    const connected = await db.testConnection();
+    if (!connected) {
+        console.warn('⚠ PostgreSQL not available; app is running in degraded mode until DB is started.');
+    }
 });
 
-// ===================================================================
-// GRACEFUL SHUTDOWN
-// ===================================================================
-
-// Manejo de señales de terminación
 process.on('SIGTERM', async () => {
     console.log('SIGTERM received. Shutting down gracefully...');
     server.close(async () => {
@@ -177,7 +154,6 @@ process.on('SIGINT', async () => {
     });
 });
 
-// Manejo de excepciones no capturadas
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
     process.exit(1);
