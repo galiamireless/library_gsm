@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-dark shadow-sm">
+<nav class="navbar navbar-expand-lg shadow-sm">
     <div class="container">
         <a class="navbar-brand" href="/">
             <i class="fa-solid fa-book-bookmark"></i>
@@ -18,13 +18,19 @@
                     <a class="nav-link" href="/books/search"><i class="fa-solid fa-magnifying-glass"></i> Buscar</a>
                 </li>
 
+                <li class="nav-item">
+                    <button id="themeToggle" class="theme-toggle" type="button" aria-label="Cambiar tema">
+                        <i id="themeIcon" class="fa-solid fa-moon"></i>
+                    </button>
+                </li>
+
                 <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
                     <% if (typeof isAdmin !== 'undefined' && isAdmin) { %>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fa-solid fa-crown"></i> Administrador
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="/admin/dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
                                 <li><a class="dropdown-item" href="/admin/books/new"><i class="fa-solid fa-plus"></i> Nuevo libro</a></li>
                                 <li><a class="dropdown-item" href="/concepts/concepts"><i class="fa-solid fa-lightbulb"></i> Conceptos</a></li>
@@ -37,7 +43,7 @@
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="fa-solid fa-user-circle"></i> Usuario
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="/books/catalog"><i class="fa-solid fa-user"></i> Mi cuenta</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="/auth/logout"><i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión</a></li>

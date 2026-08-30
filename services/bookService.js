@@ -171,7 +171,7 @@ async function getBookByISBN(isbn) {
 async function searchBooks(searchTerm, minPrice = 0, maxPrice = 999999, page = 1, perPage = 10) {
     try {
         const offset = (page - 1) * perPage;
-        const searchPattern = `%${searchTerm}%`;
+        const searchPattern = `%${(searchTerm || '').trim()}%`;
 
         const result = await db.query(
             `SELECT 
@@ -181,10 +181,8 @@ async function searchBooks(searchTerm, minPrice = 0, maxPrice = 999999, page = 1
             FROM books b
             LEFT JOIN book_authors ba ON b.isbn = ba.isbn
             LEFT JOIN authors a ON ba.author_id = a.author_id
-            WHERE (LOWER(b.title) LIKE LOWER($1) 
-                   OR LOWER(b.description) LIKE LOWER($1)
-                   OR LOWER(a.name) LIKE LOWER($1))
-                  AND b.price BETWEEN $2 AND $3
+            WHERE (b.title ILIKE $1 OR b.isbn ILIKE $1 OR b.description ILIKE $1)
+              AND b.price BETWEEN $2 AND $3
             GROUP BY b.isbn, b.title, b.description, b.price, b.stock, b.publication_year
             ORDER BY b.title ASC
             LIMIT $4 OFFSET $5`,

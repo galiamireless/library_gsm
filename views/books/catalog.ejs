@@ -22,11 +22,11 @@
                         <h1>Descubre libros para aprender, crear y crecer.</h1>
                     </div>
                     <div class="col-lg-5">
-                        <form method="GET" action="/books/search" class="search-box">
+                        <form method="GET" action="/books/search" class="search-box" id="catalogSearchForm">
                             <label class="form-label text-white-50 mb-2">Buscar por título o ISBN</label>
                             <div class="input-group">
-                                <input type="text" name="q" class="form-control search-box" placeholder="Ej. Clean Code, 9780132350884" aria-label="Buscar libro">
-                                <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+                                <input id="searchInput" type="text" name="q" class="form-control search-box" placeholder="Ej. Clean Code, 9780132350884" aria-label="Buscar libro">
+                                <button class="btn btn-primary" type="submit"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
                             </div>
                         </form>
                     </div>
