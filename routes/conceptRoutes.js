@@ -128,7 +128,7 @@ router.post('/concepts', isAdmin, asyncHandler(async (req, res) => {
         });
     }
 
-    res.redirect('/admin/concepts');
+    res.redirect(`${res.locals.baseUrl || ''}/admin/concepts`);
 }));
 
 // GET: Listar todos los conceptos
@@ -177,7 +177,7 @@ router.post('/concepts/:conceptId', isAdmin, asyncHandler(async (req, res) => {
         });
     }
 
-    res.redirect('/admin/concepts');
+    res.redirect(`${res.locals.baseUrl || ''}/admin/concepts`);
 }));
 
 // DELETE: Eliminar concepto

@@ -46,7 +46,7 @@ router.post('/login', isNotLoggedIn, asyncHandler(async (req, res) => {
                 error: 'Session error. Please try again.'
             });
         }
-        res.redirect('/books/catalog');
+        res.redirect(`${res.locals.baseUrl || ''}/books/catalog`);
     });
 }));
 
@@ -103,7 +103,7 @@ router.post('/register', isNotLoggedIn, asyncHandler(async (req, res) => {
                 error: 'Session error. Please try again.'
             });
         }
-        res.redirect('/books/catalog');
+        res.redirect(`${res.locals.baseUrl || ''}/books/catalog`);
     });
 }));
 
@@ -111,9 +111,9 @@ router.post('/register', isNotLoggedIn, asyncHandler(async (req, res) => {
 router.get('/logout', isLoggedIn, (req, res) => {
     req.session.destroy((err) => {
         if (err) {
-            return res.redirect('/books/catalog');
+            return res.redirect(`${res.locals.baseUrl || ''}/books/catalog`);
         }
-        res.redirect('/auth/login');
+        res.redirect(`${res.locals.baseUrl || ''}/auth/login`);
     });
 });
 

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" role="img" aria-labelledby="title">
+  <title id="title">Portada no disponible</title>
+  <rect width="600" height="800" fill="#e8eef7"/>
+  <rect x="80" y="80" width="440" height="640" rx="12" fill="#ffffff" stroke="#b8c7dc" stroke-width="8"/>
+  <path d="M180 250h240M180 310h180M180 500h240M180 560h180" stroke="#2563eb" stroke-width="18" stroke-linecap="round"/>
+  <path d="M180 410h110" stroke="#059669" stroke-width="18" stroke-linecap="round"/>
+</svg>

@@ -27,11 +27,15 @@ const conceptRoutes = require('./routes/conceptRoutes');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
+app.enable('trust proxy');
 
 // ===================================================================
 // CONFIGURACIÓN DE SEGURIDAD
 // ===================================================================
-app.use(helmet());
+app.use(helmet({
+    hsts: false,
+    contentSecurityPolicy: false
+}));
 app.use(cors({
     origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
     credentials: true
@@ -42,8 +46,15 @@ app.use(cors({
 // ===================================================================
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/css', express.static(path.join(__dirname, 'public/css')));
+app.use('/js', express.static(path.join(__dirname, 'public/js')));
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
+app.use('/library/css', express.static(path.join(__dirname, 'public/css')));
+app.use('/library/js', express.static(path.join(__dirname, 'public/js')));
+app.use('/library/images', express.static(path.join(__dirname, 'public/images')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/library/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ===================================================================
 // MIDDLEWARE DE PARSEO Y LOGGING
@@ -70,7 +81,7 @@ app.use(session({
     resave: false,
     saveUninitialized: false,
     cookie: {
-        secure: process.env.SESSION_COOKIE_SECURE === 'true',
+        secure: false,
         httpOnly: process.env.SESSION_COOKIE_HTTPONLY !== 'false',
         sameSite: process.env.SESSION_COOKIE_SAMESITE || 'Lax',
         maxAge: parseInt(process.env.SESSION_MAX_AGE) || 86400000
@@ -78,37 +89,50 @@ app.use(session({
 }));
 
 // ===================================================================
-// MIDDLEWARE GLOBAL
+// MIDDLEWARE GLOBAL DE CONTEXTO
 // ===================================================================
+app.use((req, res, next) => {
+    req.headers['x-forwarded-proto'] = 'http';
+    res.locals.baseUrl = req.originalUrl.startsWith('/library') ? '/library' : '';
+    res.locals.user = req.session ? req.session.user : null;
+    res.locals.isLoggedIn = !!(req.session && req.session.user);
+    res.locals.isAdmin = !!(req.session && req.session.user && req.session.user.role === 'ADMIN');
+    next();
+});
+
 app.use(attachUserToLocals);
 
 // ===================================================================
 // RUTAS DE LA APLICACIÓN
 // ===================================================================
 app.get('/', (req, res) => {
-    res.redirect('/books/catalog');
+    res.redirect(`${res.locals.baseUrl || ''}/books/catalog`);
 });
 
 app.get('/library', (req, res) => {
-    res.redirect('/books/catalog');
+    res.redirect('/library/books/catalog');
 });
 
 app.get('/books', (req, res) => {
-    res.redirect('/books/catalog');
+    res.redirect(`${res.locals.baseUrl || ''}/books/catalog`);
 });
 
 app.get('/admin', (req, res) => {
-    res.redirect('/admin/dashboard');
+    res.redirect(`${res.locals.baseUrl || ''}/admin/dashboard`);
 });
 
 app.get('/auth', (req, res) => {
-    res.redirect('/auth/login');
+    res.redirect(`${res.locals.baseUrl || ''}/auth/login`);
 });
 
 app.use('/auth', authRoutes);
 app.use('/books', bookRoutes);
+app.use('/library/auth', authRoutes);
+app.use('/library/books', bookRoutes);
 app.use('/admin', adminRoutes);
 app.use('/concepts', conceptRoutes);
+app.use('/library/admin', adminRoutes);
+app.use('/library/concepts', conceptRoutes);
 
 app.get('/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });

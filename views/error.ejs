@@ -13,10 +13,10 @@
                     <%= typeof error !== 'undefined' && error && error.details ? error.details : 'La página solicitada no está disponible en este momento.' %>
                 </p>
                 <div class="d-flex flex-wrap gap-3 justify-content-center">
-                    <a href="/books/catalog" class="btn btn-primary btn-lg">
+                    <a href="<%= baseUrl || '' %>/books/catalog" class="btn btn-primary btn-lg">
                         <i class="fa-solid fa-book-open me-2"></i>Ir al catálogo
                     </a>
-                    <a href="/auth/login" class="btn btn-outline-secondary btn-lg">
+                    <a href="<%= baseUrl || '' %>/auth/login" class="btn btn-outline-secondary btn-lg">
                         <i class="fa-solid fa-right-to-bracket me-2"></i>Iniciar sesión
                     </a>
                 </div>

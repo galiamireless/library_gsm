@@ -17,7 +17,7 @@ const fallbackBooks = [
         format: 'Paperback',
         authors: 'Robert C. Martin',
         genres: 'Software Engineering',
-        images: [{ image_url: '/uploads/default-book.jpg', alt_text: 'Clean Code cover', is_cover: true }]
+        images: [{ image_url: '/images/default-cover.svg', alt_text: 'Clean Code cover', is_cover: true }]
     },
     {
         isbn: '9780596007126',
@@ -30,7 +30,7 @@ const fallbackBooks = [
         format: 'Hardcover',
         authors: 'Kathy Sierra, Bert Bates',
         genres: 'Programming',
-        images: [{ image_url: '/uploads/default-book.jpg', alt_text: 'Head First Java cover', is_cover: true }]
+        images: [{ image_url: '/images/default-cover.svg', alt_text: 'Head First Java cover', is_cover: true }]
     },
     {
         isbn: '9780201616224',
@@ -43,7 +43,7 @@ const fallbackBooks = [
         format: 'Paperback',
         authors: 'Andrew Hunt, David Thomas',
         genres: 'Software Engineering',
-        images: [{ image_url: '/uploads/default-book.jpg', alt_text: 'Pragmatic Programmer cover', is_cover: true }]
+        images: [{ image_url: '/images/default-cover.svg', alt_text: 'Pragmatic Programmer cover', is_cover: true }]
     },
     {
         isbn: '9781119266303',
@@ -56,7 +56,7 @@ const fallbackBooks = [
         format: 'Paperback',
         authors: 'David Flanagan',
         genres: 'Web Development',
-        images: [{ image_url: '/uploads/default-book.jpg', alt_text: 'JS definitive guide cover', is_cover: true }]
+        images: [{ image_url: '/images/default-cover.svg', alt_text: 'JS definitive guide cover', is_cover: true }]
     }
 ];
 
@@ -90,7 +90,7 @@ function getFallbackBookByISBN(isbn) {
         success: true,
         book: {
             ...book,
-            images: book.images || [{ image_url: '/uploads/default-book.jpg', alt_text: 'Book cover', is_cover: true }]
+            images: book.images || [{ image_url: '/images/default-cover.svg', alt_text: 'Book cover', is_cover: true }]
         }
     };
 }

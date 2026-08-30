@@ -53,7 +53,7 @@ router.post('/books', isAdmin, asyncHandler(async (req, res) => {
         });
     }
 
-    res.redirect(`/admin/books/edit/${isbn}`);
+    res.redirect(`${res.locals.baseUrl || ''}/admin/books/edit/${encodeURIComponent(isbn)}`);
 }));
 
 // GET: Formulario para editar libro
@@ -95,7 +95,7 @@ router.post('/books/:isbn', isAdmin, asyncHandler(async (req, res) => {
         });
     }
 
-    res.redirect(`/admin/books/edit/${isbn}`);
+    res.redirect(`${res.locals.baseUrl || ''}/admin/books/edit/${encodeURIComponent(isbn)}`);
 }));
 
 // GET: Listar todas las imágenes de un libro

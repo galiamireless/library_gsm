@@ -8,7 +8,7 @@ const isLoggedIn = (req, res, next) => {
     if (req.session && req.session.user) {
         return next();
     }
-    res.redirect('/auth/login');
+    res.redirect(`${res.locals.baseUrl || ''}/auth/login`);
 };
 
 // Middleware: Verificar si el usuario es Administrador
@@ -33,7 +33,7 @@ const isAdmin = (req, res, next) => {
 // Middleware: Permitir acceso solo a usuarios no autenticados (para login/registro)
 const isNotLoggedIn = (req, res, next) => {
     if (req.session && req.session.user) {
-        return res.redirect('/books/catalog');
+        return res.redirect(`${res.locals.baseUrl || ''}/books/catalog`);
     }
     next();
 };
