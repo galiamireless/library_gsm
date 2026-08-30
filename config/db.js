@@ -9,9 +9,9 @@ require('dotenv').config();
 const pool = new Pool({
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT) || 5432,
-    database: process.env.DB_NAME || 'library_db',
-    user: process.env.DB_USER || 'library_user',
-    password: process.env.DB_PASSWORD || 'library_secure_password_2026',
+    database: process.env.DB_NAME || 'gsm_library_db',
+    user: process.env.DB_USER || 'lib_gsm_user',
+    password: process.env.DB_PASSWORD || 'lib_gsm_user666',
     max: parseInt(process.env.DB_POOL_MAX) || 10,
     min: parseInt(process.env.DB_POOL_MIN) || 2,
     idleTimeoutMillis: parseInt(process.env.DB_POOL_IDLE_TIMEOUT) || 30000,

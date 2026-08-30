@@ -181,4 +181,4 @@ WHERE is_active = TRUE
 ORDER BY created_at DESC;
 
 -- Otorgar permisos de lectura en vistas
-GRANT SELECT ON ALL TABLES IN SCHEMA public TO library_user;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO lib_gsm_user;

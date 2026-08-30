@@ -142,5 +142,5 @@ COMMENT ON COLUMN users.role IS 'Rol del usuario: ADMIN o USER. Solo un ADMIN pe
 COMMENT ON COLUMN book_concepts.definition IS 'Definición específica del concepto dentro del contexto del libro.';
 
 -- Otorgar permisos al usuario de aplicación
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO library_user;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO library_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO lib_gsm_user;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO lib_gsm_user;
