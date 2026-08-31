@@ -145,6 +145,7 @@ psql -U lib_gsm_user -d gsm_library_db -f db/05_triggers.sql
 psql -U lib_gsm_user -d gsm_library_db -f db/06_views.sql
 # Depurar categorias/autores y completar minimos del reporte
 psql -U lib_gsm_user -d gsm_library_db -f db/09_cleanup_real_catalog.sql
+psql -U lib_gsm_user -d gsm_library_db -f db/10_repair_book_authors.sql
 # Completar mínimos de datos y generar salida para evidencias
 psql -U lib_gsm_user -d gsm_library_db -f db/07_complete_report_data.sql
 psql -U lib_gsm_user -d gsm_library_db -f db/08_report_evidence.sql
