@@ -378,6 +378,21 @@ html.dark .table th {
     color: #cbd5e1 !important;
 }
 
+html[data-theme="dark"] .card h1,
+html[data-theme="dark"] .card h2,
+html[data-theme="dark"] .card h3,
+html[data-theme="dark"] .card h4,
+html[data-theme="dark"] .card h5,
+html[data-theme="dark"] .card h6,
+html.dark .card h1,
+html.dark .card h2,
+html.dark .card h3,
+html.dark .card h4,
+html.dark .card h5,
+html.dark .card h6 {
+    color: #f8fafc !important;
+}
+
 @media (max-width: 768px) {
     .main-shell {
         padding-top: 1.4rem;
