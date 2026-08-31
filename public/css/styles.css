@@ -361,6 +361,23 @@ html[data-theme="dark"] .table thead th {
     background: rgba(148, 163, 184, 0.08);
 }
 
+html[data-theme="dark"] .text-muted,
+html.dark .text-muted {
+    color: #cbd5e1 !important;
+}
+
+html[data-theme="dark"] .text-secondary,
+html.dark .text-secondary,
+html[data-theme="dark"] .table td,
+html.dark .table td {
+    color: #e2e8f0 !important;
+}
+
+html[data-theme="dark"] .table th,
+html.dark .table th {
+    color: #cbd5e1 !important;
+}
+
 @media (max-width: 768px) {
     .main-shell {
         padding-top: 1.4rem;

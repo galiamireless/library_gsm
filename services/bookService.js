@@ -57,6 +57,19 @@ const fallbackBooks = [
         authors: 'David Flanagan',
         genres: 'Desarrollo Web',
         images: [{ image_url: '/images/default-cover.svg', alt_text: 'JS definitive guide cover', is_cover: true }]
+    },
+    {
+        isbn: '9781801072609',
+        title: 'C# 12 in a Nutshell',
+        description: 'Referencia concisa del lenguaje C# 12 y de la plataforma .NET.',
+        price: 51,
+        stock: 9,
+        publication_year: 2024,
+        publisher: "O'Reilly Media",
+        format: 'Paperback',
+        authors: 'Joseph Albahari, Ben Albahari',
+        genres: 'Programación',
+        images: [{ image_url: '/images/default-cover.svg', alt_text: 'C# 12 in a Nutshell cover', is_cover: true }]
     }
 ];
 

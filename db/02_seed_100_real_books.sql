@@ -69,6 +69,8 @@ INSERT INTO authors (name, country, birth_year) VALUES
 ('Peter Drucker', 'USA', 1909),
 ('Nassim Nicholas Taleb', 'Lebanon', 1960),
 ('James Clear', 'USA', 1987),
+('Joseph Albahari', 'UK', 1970),
+('Ben Albahari', 'UK', 1972),
 ('Daniel Kahneman', 'Israel', 1934),
 ('Stephen Hawking', 'UK', 1942),
 ('Carl Sagan', 'USA', 1934),
@@ -274,6 +276,11 @@ SELECT b.isbn, a.author_id
 FROM books b
 JOIN authors a ON a.name = 'James Clear'
 WHERE b.title = 'Atomic Habits'
+UNION ALL
+SELECT b.isbn, a.author_id
+FROM books b
+JOIN authors a ON a.name IN ('Joseph Albahari', 'Ben Albahari')
+WHERE b.title = 'C# 12 in a Nutshell'
 UNION ALL
 SELECT b.isbn, a.author_id
 FROM books b

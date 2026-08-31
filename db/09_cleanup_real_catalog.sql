@@ -64,6 +64,18 @@ INSERT INTO authors (name, country, birth_year) VALUES
 ('Pablo Neruda', 'Chile', 1904)
 ON CONFLICT (name) DO NOTHING;
 
+INSERT INTO authors (name, country, birth_year) VALUES
+('Joseph Albahari', 'Reino Unido', 1970),
+('Ben Albahari', 'Reino Unido', 1972)
+ON CONFLICT (name) DO NOTHING;
+
+INSERT INTO book_authors (isbn, author_id)
+SELECT b.isbn, a.author_id
+FROM books b
+JOIN authors a ON a.name IN ('Joseph Albahari', 'Ben Albahari')
+WHERE b.isbn = '9781801072609'
+ON CONFLICT (isbn, author_id) DO NOTHING;
+
 -- Usuarios demo adicionales para cumplir el mínimo del reporte.
 INSERT INTO users (username, email, password_hash, full_name, role, is_active)
 SELECT 'lector' || n,
