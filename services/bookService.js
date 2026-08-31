@@ -16,7 +16,7 @@ const fallbackBooks = [
         publisher: 'Prentice Hall',
         format: 'Paperback',
         authors: 'Robert C. Martin',
-        genres: 'Software Engineering',
+        genres: 'Ingeniería de Software',
         images: [{ image_url: '/images/default-cover.svg', alt_text: 'Clean Code cover', is_cover: true }]
     },
     {
@@ -29,7 +29,7 @@ const fallbackBooks = [
         publisher: 'O\'Reilly Media',
         format: 'Hardcover',
         authors: 'Kathy Sierra, Bert Bates',
-        genres: 'Programming',
+        genres: 'Programación',
         images: [{ image_url: '/images/default-cover.svg', alt_text: 'Head First Java cover', is_cover: true }]
     },
     {
@@ -42,7 +42,7 @@ const fallbackBooks = [
         publisher: 'Addison-Wesley',
         format: 'Paperback',
         authors: 'Andrew Hunt, David Thomas',
-        genres: 'Software Engineering',
+        genres: 'Ingeniería de Software',
         images: [{ image_url: '/images/default-cover.svg', alt_text: 'Pragmatic Programmer cover', is_cover: true }]
     },
     {
@@ -55,7 +55,7 @@ const fallbackBooks = [
         publisher: 'O\'Reilly Media',
         format: 'Paperback',
         authors: 'David Flanagan',
-        genres: 'Web Development',
+        genres: 'Desarrollo Web',
         images: [{ image_url: '/images/default-cover.svg', alt_text: 'JS definitive guide cover', is_cover: true }]
     }
 ];

@@ -4,23 +4,8 @@
 
 BEGIN;
 
--- Elevar catálogos básicos a 30 registros.
-INSERT INTO authors (name, country, birth_year)
-SELECT 'Autor académico ' || n, 'Mexico', 1970 + (n % 30)
-FROM generate_series(1, 35) AS numbers(n)
-WHERE NOT EXISTS (SELECT 1 FROM authors a WHERE a.name = 'Autor académico ' || n);
-
-INSERT INTO genres (name, description)
-SELECT 'Categoría ' || n, 'Categoría adicional para pruebas y clasificación.'
-FROM generate_series(1, 35) AS numbers(n)
-WHERE NOT EXISTS (SELECT 1 FROM genres g WHERE g.name = 'Categoría ' || n);
-
-INSERT INTO concepts (name, description)
-SELECT 'Concepto ' || n, 'Concepto adicional para pruebas del modelo normalizado.'
-FROM generate_series(1, 35) AS numbers(n)
-WHERE NOT EXISTS (SELECT 1 FROM concepts c WHERE c.name = 'Concepto ' || n);
-
--- Usuarios regulares de prueba hasta alcanzar 30 usuarios totales.
+-- Los catálogos reales se completan en 09_cleanup_real_catalog.sql.
+-- Aquí solo se agregan usuarios de prueba y relaciones faltantes.
 INSERT INTO users (username, email, password_hash, full_name, role, is_active)
 SELECT 'tester' || n,
        'tester' || n || '@library.local',

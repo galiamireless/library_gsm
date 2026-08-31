@@ -40,7 +40,6 @@ INSERT INTO authors (name, country, birth_year) VALUES
 ('John C. Mitchell', 'USA', 1955),
 ('M. T. Anderson', 'USA', 1970),
 ('Yuval Noah Harari', 'Israel', 1976),
-('Sapiens', 'Israel', 1976),
 ('George Orwell', 'UK', 1903),
 ('Haruki Murakami', 'Japan', 1949),
 ('J. R. R. Tolkien', 'UK', 1892),
@@ -111,21 +110,21 @@ ON CONFLICT (name) DO NOTHING;
 
 -- Géneros
 INSERT INTO genres (name, description) VALUES
-('Software Engineering', 'Ingeniería de software y arquitectura'),
-('Programming', 'Programación y lenguajes de desarrollo'),
-('Web Development', 'Desarrollo web y front-end'),
-('Cloud Computing', 'Computación en la nube y plataformas digitales'),
-('AI', 'IA y aprendizaje automático'),
-('Algorithms', 'Algoritmos, estructuras y lógica'),
-('Data Science', 'Ciencia de datos y analítica'),
-('Operating Systems', 'Sistemas operativos y arquitectura'),
+('Ingeniería de Software', 'Ingeniería de software y arquitectura'),
+('Programación', 'Programación y lenguajes de desarrollo'),
+('Desarrollo Web', 'Desarrollo web y front-end'),
+('Computación en la Nube', 'Computación en la nube y plataformas digitales'),
+('Inteligencia Artificial', 'IA y aprendizaje automático'),
+('Algoritmos', 'Algoritmos, estructuras y lógica'),
+('Ciencia de Datos', 'Ciencia de datos y analítica'),
+('Sistemas Operativos', 'Sistemas operativos y arquitectura'),
 ('DevOps', 'DevOps y despliegue continuo'),
-('Security', 'Seguridad informática'),
-('Literature', 'Literatura general y narrativa'),
-('Science', 'Ciencia y divulgación científica'),
-('Psychology', 'Psicología y comportamiento humano'),
-('Business', 'Negocios y estrategia'),
-('Personal Growth', 'Crecimiento personal y productividad')
+('Seguridad Informática', 'Seguridad informática'),
+('Literatura', 'Literatura general y narrativa'),
+('Ciencia', 'Ciencia y divulgación científica'),
+('Psicología', 'Psicología y comportamiento humano'),
+('Negocios', 'Negocios y estrategia'),
+('Crecimiento Personal', 'Crecimiento personal y productividad')
 ON CONFLICT (name) DO NOTHING;
 
 -- Libros reales (100)
@@ -341,47 +340,47 @@ ON CONFLICT (isbn, author_id) DO NOTHING;
 INSERT INTO book_genres (isbn, genre_id)
 SELECT b.isbn, g.genre_id
 FROM books b
-JOIN genres g ON g.name = 'Software Engineering'
+JOIN genres g ON g.name = 'Ingeniería de Software'
 WHERE b.title IN ('Clean Code', 'The Pragmatic Programmer', 'Refactoring', 'Code Complete', 'Modern Operating Systems')
 UNION ALL
 SELECT b.isbn, g.genre_id
 FROM books b
-JOIN genres g ON g.name = 'Programming'
+JOIN genres g ON g.name = 'Programación'
 WHERE b.title IN ('Head First Java', 'Effective Java', 'JavaScript: The Definitive Guide', 'Effective Python', 'The C Programming Language', 'Learning SQL')
 UNION ALL
 SELECT b.isbn, g.genre_id
 FROM books b
-JOIN genres g ON g.name = 'Web Development'
+JOIN genres g ON g.name = 'Desarrollo Web'
 WHERE b.title IN ('JavaScript: The Definitive Guide', 'HTML5', 'Learning SQL')
 UNION ALL
 SELECT b.isbn, g.genre_id
 FROM books b
-JOIN genres g ON g.name = 'Cloud Computing'
+JOIN genres g ON g.name = 'Computación en la Nube'
 WHERE b.title IN ('Docker in Action', 'Kubernetes Up and Running', 'Terraform Up & Running', 'The Phoenix Project', 'The DevOps Handbook')
 UNION ALL
 SELECT b.isbn, g.genre_id
 FROM books b
-JOIN genres g ON g.name = 'AI'
+JOIN genres g ON g.name = 'Inteligencia Artificial'
 WHERE b.title = 'Generative AI for Everyone'
 UNION ALL
 SELECT b.isbn, g.genre_id
 FROM books b
-JOIN genres g ON g.name = 'Algorithms'
+JOIN genres g ON g.name = 'Algoritmos'
 WHERE b.title IN ('Introduction to Algorithms', 'Computer Systems', 'The Practice of Programming')
 UNION ALL
 SELECT b.isbn, g.genre_id
 FROM books b
-JOIN genres g ON g.name = 'Business'
+JOIN genres g ON g.name = 'Negocios'
 WHERE b.title IN ('The Lean Startup', 'Atomic Habits', 'The Power of Habit', 'Deep Work', 'Rich Dad Poor Dad')
 UNION ALL
 SELECT b.isbn, g.genre_id
 FROM books b
-JOIN genres g ON g.name = 'Science'
+JOIN genres g ON g.name = 'Ciencia'
 WHERE b.title IN ('Cosmos', 'A Brief History of Time', 'Astrophysics for People in a Hurry', 'The Elegant Universe')
 UNION ALL
 SELECT b.isbn, g.genre_id
 FROM books b
-JOIN genres g ON g.name = 'Literature'
+JOIN genres g ON g.name = 'Literatura'
 WHERE b.title IN ('1984', 'Pride and Prejudice', 'Moby-Dick', 'The Great Gatsby', 'To Kill a Mockingbird', 'The Little Prince', 'Jane Eyre')
 ON CONFLICT (isbn, genre_id) DO NOTHING;
 
