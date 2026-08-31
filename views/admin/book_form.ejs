@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es" data-base-url="<%= baseUrl || '' %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Libro' %> | Library UDEM</title>
+    <link rel="preconnect" href="http://fonts.googleapis.com">
+    <link rel="preconnect" href="http://fonts.gstatic.com" crossorigin>
+    <link href="http://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="http://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="<%= baseUrl || '' %>/css/styles.css">
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+    <main class="main-shell">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <p class="text-uppercase text-primary fw-semibold small mb-2">Administración</p>
+                    <h1 class="h2 fw-bold mb-0"><%= book ? 'Editar libro' : 'Nuevo libro' %></h1>
+                </div>
+                <a href="<%= baseUrl || '' %>/admin/dashboard" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-2"></i>Dashboard</a>
+            </div>
+
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="alert alert-danger" role="alert"><%= error %></div>
+            <% } %>
+
+            <form method="POST" action="<%= baseUrl || '' %><%= book ? '/admin/books/' + encodeURIComponent(book.isbn) : '/admin/books' %>" class="card p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="isbn" class="form-label">ISBN</label>
+                        <input id="isbn" name="isbn" class="form-control" value="<%= book ? book.isbn : '' %>" <%= book ? 'readonly' : 'required' %>>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="title" class="form-label">Título</label>
+                        <input id="title" name="title" class="form-control" value="<%= book ? book.title : '' %>" required>
+                    </div>
+                    <div class="col-12">
+                        <label for="description" class="form-label">Descripción</label>
+                        <textarea id="description" name="description" class="form-control" rows="4"><%= book ? book.description || '' : '' %></textarea>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="publication_year" class="form-label">Año de publicación</label>
+                        <input id="publication_year" name="publication_year" type="number" class="form-control" value="<%= book ? book.publication_year || '' : '' %>">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="price" class="form-label">Precio</label>
+                        <input id="price" name="price" type="number" min="0" step="0.01" class="form-control" value="<%= book ? book.price || '' : '' %>" required>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="stock" class="form-label">Stock</label>
+                        <input id="stock" name="stock" type="number" min="0" class="form-control" value="<%= book ? book.stock || 0 : 0 %>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="format_id" class="form-label">Formato</label>
+                        <select id="format_id" name="format_id" class="form-select">
+                            <option value="">Seleccionar formato</option>
+                            <% (formats || []).forEach((format) => { %>
+                                <option value="<%= format.format_id %>" <%= book && String(book.format_id) === String(format.format_id) ? 'selected' : '' %>><%= format.name %></option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="publisher" class="form-label">Editorial</label>
+                        <input id="publisher" name="publisher" class="form-control" value="<%= book ? book.publisher || '' : '' %>">
+                    </div>
+                </div>
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="<%= baseUrl || '' %>/admin/dashboard" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-2"></i>Guardar libro</button>
+                </div>
+            </form>
+        </div>
+    </main>
+    <%- include('../footer') %>
+    <script src="http://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<%= baseUrl || '' %>/js/script.js"></script>
+</body>
+</html>
