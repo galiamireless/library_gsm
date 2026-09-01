@@ -216,12 +216,200 @@ async function changePassword(userId, oldPassword, newPassword) {
     }
 }
 
+async function getAllUsers() {
+    try {
+        const result = await db.query(
+            'SELECT user_id, username, email, full_name, role, is_active, created_at FROM users ORDER BY username ASC'
+        );
+
+        return {
+            success: true,
+            users: result.rows
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+async function createUser(username, email, password, fullName, role = 'USER', isActive = true) {
+    try {
+        if (!username || !email || !password) {
+            throw new Error('Username, email, and password are required');
+        }
+
+        if (!['ADMIN', 'USER'].includes(role)) {
+            throw new Error('Role must be ADMIN or USER');
+        }
+
+        const usernameCheck = await db.query('SELECT user_id FROM users WHERE username = $1', [username]);
+        if (usernameCheck.rows.length > 0) {
+            throw new Error('Username already exists');
+        }
+
+        const emailCheck = await db.query('SELECT user_id FROM users WHERE email = $1', [email]);
+        if (emailCheck.rows.length > 0) {
+            throw new Error('Email already exists');
+        }
+
+        const passwordHash = await hashPassword(password);
+
+        const result = await db.query(
+            'INSERT INTO users (username, email, password_hash, full_name, role, is_active) VALUES ($1, $2, $3, $4, $5, $6) RETURNING user_id, username, email, full_name, role, is_active',
+            [username, email, passwordHash, fullName || username, role, Boolean(isActive)]
+        );
+
+        return {
+            success: true,
+            user: result.rows[0]
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+async function updateUser(userId, username, email, fullName, role = 'USER', isActive = true, password = null) {
+    try {
+        if (!userId) {
+            throw new Error('User id is required');
+        }
+
+        if (!username || !email) {
+            throw new Error('Username and email are required');
+        }
+
+        if (!['ADMIN', 'USER'].includes(role)) {
+            throw new Error('Role must be ADMIN or USER');
+        }
+
+        const existingUser = await db.query(
+            'SELECT user_id, username, email, role FROM users WHERE user_id = $1',
+            [userId]
+        );
+
+        if (existingUser.rows.length === 0) {
+            throw new Error('User not found');
+        }
+
+        const duplicateUsername = await db.query(
+            'SELECT user_id FROM users WHERE username = $1 AND user_id <> $2',
+            [username, userId]
+        );
+        if (duplicateUsername.rows.length > 0) {
+            throw new Error('Username already exists');
+        }
+
+        const duplicateEmail = await db.query(
+            'SELECT user_id FROM users WHERE email = $1 AND user_id <> $2',
+            [email, userId]
+        );
+        if (duplicateEmail.rows.length > 0) {
+            throw new Error('Email already exists');
+        }
+
+        const adminCount = await db.query(
+            'SELECT COUNT(*)::int AS count FROM users WHERE role = $1 AND user_id <> $2',
+            ['ADMIN', userId]
+        );
+
+        if (existingUser.rows[0].role === 'ADMIN' && role !== 'ADMIN' && adminCount.rows[0].count === 0) {
+            throw new Error('At least one admin must remain in the system');
+        }
+
+        let query = 'UPDATE users SET username = $1, email = $2, full_name = $3, role = $4, is_active = $5';
+        let params = [username, email, fullName || username, role, Boolean(isActive)];
+
+        if (password && String(password).trim()) {
+            const passwordHash = await hashPassword(password);
+            query += ', password_hash = $6';
+            params.push(passwordHash);
+            query += ' WHERE user_id = $7 RETURNING user_id, username, email, full_name, role, is_active';
+            params.push(userId);
+        } else {
+            query += ' WHERE user_id = $6 RETURNING user_id, username, email, full_name, role, is_active';
+            params.push(userId);
+        }
+
+        const result = await db.query(query, params);
+
+        if (result.rows.length === 0) {
+            throw new Error('User not found');
+        }
+
+        return {
+            success: true,
+            user: result.rows[0]
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+async function deleteUser(userId) {
+    try {
+        if (!userId) {
+            throw new Error('User id is required');
+        }
+
+        const existingUser = await db.query(
+            'SELECT user_id, role FROM users WHERE user_id = $1',
+            [userId]
+        );
+
+        if (existingUser.rows.length === 0) {
+            throw new Error('User not found');
+        }
+
+        if (existingUser.rows[0].role === 'ADMIN') {
+            const otherAdmins = await db.query(
+                'SELECT COUNT(*)::int AS count FROM users WHERE role = $1 AND user_id <> $2',
+                ['ADMIN', userId]
+            );
+
+            if (otherAdmins.rows[0].count === 0) {
+                throw new Error('Cannot delete the last administrator');
+            }
+        }
+
+        const result = await db.query(
+            'DELETE FROM users WHERE user_id = $1 RETURNING user_id',
+            [userId]
+        );
+
+        if (result.rows.length === 0) {
+            throw new Error('User not found');
+        }
+
+        return {
+            success: true,
+            message: 'User deleted successfully'
+        };
+    } catch (error) {
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
 module.exports = {
     hashPassword,
     verifyPassword,
     registerUser,
     loginUser,
     getUserById,
+    getAllUsers,
+    createUser,
+    updateUser,
+    deleteUser,
     adminExists,
     createAdmin,
     changePassword

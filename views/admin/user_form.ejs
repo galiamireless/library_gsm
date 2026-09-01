@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es" data-base-url="<%= baseUrl || '' %>">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title || 'Usuario' %> | Library UDEM</title>
+    <link rel="preconnect" href="http://fonts.googleapis.com">
+    <link rel="preconnect" href="http://fonts.gstatic.com" crossorigin>
+    <link href="http://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="http://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="<%= baseUrl || '' %>/css/styles.css">
+</head>
+<body>
+    <%- include('../partials/navbar') %>
+    <main class="main-shell">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <p class="text-uppercase text-primary fw-semibold small mb-2">Administración</p>
+                    <h1 class="h2 fw-bold mb-0"><%= user ? 'Editar usuario' : 'Nuevo usuario' %></h1>
+                </div>
+                <a href="<%= baseUrl || '' %>/admin/users" class="btn btn-outline-secondary"><i class="fa-solid fa-arrow-left me-2"></i>Usuarios</a>
+            </div>
+
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div class="alert alert-danger" role="alert"><%= error %></div>
+            <% } %>
+
+            <form method="POST" action="<%= baseUrl || '' %><%= user ? '/admin/users/' + user.user_id : '/admin/users' %>" class="card p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="username" class="form-label">Usuario</label>
+                        <input id="username" name="username" class="form-control" value="<%= user ? user.username || '' : '' %>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="email" class="form-label">Email</label>
+                        <input id="email" name="email" type="email" class="form-control" value="<%= user ? user.email || '' : '' %>" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="full_name" class="form-label">Nombre completo</label>
+                        <input id="full_name" name="full_name" class="form-control" value="<%= user ? user.full_name || '' : '' %>">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="role" class="form-label">Rol</label>
+                        <select id="role" name="role" class="form-select">
+                            <option value="USER" <%= user && user.role === 'USER' ? 'selected' : '' %>>USER</option>
+                            <option value="ADMIN" <%= user && user.role === 'ADMIN' ? 'selected' : '' %>>ADMIN</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="is_active" class="form-label">Estado</label>
+                        <select id="is_active" name="is_active" class="form-select">
+                            <option value="true" <%= user && user.is_active !== false ? 'selected' : '' %>>Activo</option>
+                            <option value="false" <%= user && user.is_active === false ? 'selected' : '' %>>Inactivo</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label for="password" class="form-label"><%= user ? 'Nueva contraseña (opcional)' : 'Contraseña' %></label>
+                        <input id="password" name="password" type="password" class="form-control" <%= user ? '' : 'required' %>>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="<%= baseUrl || '' %>/admin/users" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk me-2"></i>Guardar usuario</button>
+                </div>
+            </form>
+        </div>
+    </main>
+    <%- include('../footer') %>
+    <script src="http://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="<%= baseUrl || '' %>/js/script.js"></script>
+</body>
+</html>

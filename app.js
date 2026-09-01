@@ -130,8 +130,10 @@ app.use('/books', bookRoutes);
 app.use('/library/auth', authRoutes);
 app.use('/library/books', bookRoutes);
 app.use('/admin', adminRoutes);
+app.use('/admin', conceptRoutes);
 app.use('/concepts', conceptRoutes);
 app.use('/library/admin', adminRoutes);
+app.use('/library/admin', conceptRoutes);
 app.use('/library/concepts', conceptRoutes);
 
 app.get('/health', (req, res) => {

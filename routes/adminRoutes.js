@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const bookService = require('../services/bookService');
 const conceptService = require('../services/conceptService');
+const authService = require('../services/authService');
 const db = require('../config/db');
 const { isAdmin } = require('../middleware/authMiddleware');
 const { uploadSingle, handleUploadError } = require('../middleware/uploadMiddleware');
@@ -309,6 +310,110 @@ router.delete('/books/:isbn', isAdmin, asyncHandler(async (req, res) => {
     }
 
     res.json({ success: true, message: 'Book deleted successfully' });
+}));
+
+// GET: Listar usuarios
+router.get('/users', isAdmin, asyncHandler(async (req, res) => {
+    const result = await authService.getAllUsers();
+
+    res.render('admin/users_list', {
+        title: 'Manage Users',
+        users: result.success ? result.users : []
+    });
+}));
+
+// GET: Formulario para crear usuario
+router.get('/users/new', isAdmin, asyncHandler(async (req, res) => {
+    res.render('admin/user_form', {
+        title: 'Create User',
+        user: null,
+        error: null
+    });
+}));
+
+// POST: Crear usuario
+router.post('/users', isAdmin, asyncHandler(async (req, res) => {
+    const { username, email, password, full_name, role, is_active } = req.body;
+
+    const result = await authService.createUser(
+        username,
+        email,
+        password,
+        full_name,
+        role || 'USER',
+        is_active !== undefined ? is_active !== 'false' && is_active !== false : true
+    );
+
+    if (!result.success) {
+        return res.render('admin/user_form', {
+            title: 'Create User',
+            user: req.body,
+            error: result.error
+        });
+    }
+
+    res.redirect(`${res.locals.baseUrl || ''}/admin/users`);
+}));
+
+// GET: Formulario para editar usuario
+router.get('/users/:userId/edit', isAdmin, asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+    const result = await authService.getUserById(userId);
+
+    if (!result.success) {
+        return res.status(404).render('error', {
+            message: 'User Not Found',
+            error: { status: 404 }
+        });
+    }
+
+    res.render('admin/user_form', {
+        title: 'Edit User',
+        user: result.user,
+        error: null
+    });
+}));
+
+// POST: Actualizar usuario
+router.post('/users/:userId', isAdmin, asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+    const { username, email, password, full_name, role, is_active } = req.body;
+
+    const result = await authService.updateUser(
+        userId,
+        username,
+        email,
+        full_name,
+        role || 'USER',
+        is_active !== undefined ? is_active !== 'false' && is_active !== false : true,
+        password && String(password).trim() ? password : null
+    );
+
+    if (!result.success) {
+        return res.render('admin/user_form', {
+            title: 'Edit User',
+            user: { ...req.body, user_id: userId },
+            error: result.error
+        });
+    }
+
+    res.redirect(`${res.locals.baseUrl || ''}/admin/users`);
+}));
+
+// DELETE: Eliminar usuario
+router.delete('/users/:userId', isAdmin, asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+
+    const result = await authService.deleteUser(userId);
+
+    if (!result.success) {
+        return res.status(400).json({
+            success: false,
+            message: result.error
+        });
+    }
+
+    res.json({ success: true, message: 'User deleted successfully' });
 }));
 
 module.exports = router;
