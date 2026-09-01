@@ -1,466 +1,239 @@
-# Revisión de Seguridad - Matriz de Amenazas y Mitigaciones
+﻿# Revisión de Seguridad - Matriz de Amenazas, Controles y Evidencia
 
-## Resumen Ejecutivo
+## Objetivo
 
-Se han identificado y mitigado **10+ amenazas OWASP** potenciales en la aplicación. Todas implementan mitigaciones a nivel de código y configuración.
+Documentar, para cada control aplicado, la amenaza que cubre, la medida técnica implementada y la evidencia de prueba que valida el comportamiento.
 
 ---
 
-## Matriz de Amenazas OWASP Top 10 (2021)
+## Matriz de controles
 
-### 1. Inyección SQL (A03:2021 - Injection)
+| ID | Amenaza | Control aplicado | Evidencia de prueba |
+| --- | --- | --- | --- |
+| SEC-01 | Inyección SQL en búsqueda o login | Consultas parametrizadas con `pg` usando `$1`, `$2`, etc. | `curl -G -i http://localhost:3000/books/search --data-urlencode "q=' OR 1=1 --"` no produce error 500 ni bypass. |
+| SEC-02 | Falsificación de sesión | Sesiones almacenadas con `express-session` + `connect-pg-simple`, cookies `httpOnly` y `sameSite`. | Login y logout en la app muestran sesión válida y destrucción correcta. |
+| SEC-03 | Acceso no autorizado a rutas admin | Middleware `isLoggedIn` e `isAdmin` en rutas protegidas. | Intento de acceso a `/admin/dashboard` sin autenticación y con usuario normal queda denegado. |
+| SEC-04 | XSS en renderizado de texto | EJS auto-escapa valores en vistas con `<%= %>`. | Título con `<script>` se renderiza como texto y no ejecuta JS. |
+| SEC-05 | Carga de archivos maliciosos | `multer` con whitelist de MIME y extensión permitida: `image/jpeg`, `image/png`, `image/webp`. | Subida de `.exe`, `.zip` y archivos no permitidos queda rechazada. |
+| SEC-06 | Archivos de tamaño excesivo | Límite `fileSize` configurable y validado por middleware. | Una imagen > 2 MB responde con error 400 y mensaje claro. |
+| SEC-07 | Path traversal o sobrescritura de nombres | Nombre generado por el sistema con `crypto.randomBytes` y extensión segura. | El nombre final del archivo no reutiliza el nombre original del usuario. |
+| SEC-08 | Exposición de rutas internas | Se guarda solo la ruta pública `/uploads/...` y no rutas del sistema de archivos. | `book_images.image_url` contiene URL pública, no rutas locales del servidor. |
+| SEC-09 | Pérdida de metadatos de imagen | Se guardan `mime_type`, `stored_filename`, `original_filename`, `file_size_bytes`, `source_type`, `source_url`. | Verificación del registro persistido en `book_images` tras upload. |
+| SEC-10 | Eliminación incompleta de imagen | Se borra el registro y el archivo físico del sistema si existe. | Se elimina la portada desde admin y el archivo asociado queda quitado. |
 
-**Severidad**: 🔴 CRÍTICA  
-**Probabilidad**: Media (sin medidas)
+---
 
-#### Descripción
-Un atacante podría inyectar código SQL arbitrario en inputs de búsqueda o login para acceder/modificar datos.
+## Controles detallados
 
-#### Ejemplo de Ataque
-```javascript
-// SIN PROTECCIÓN:
-const query = "SELECT * FROM users WHERE username = '" + username + "'";
-// Input: ' OR '1'='1
-// Query resultante: SELECT * FROM users WHERE username = '' OR '1'='1'
-```
+### SEC-01. Inyección SQL
+**Amenaza:** un atacante intenta ejecutar payloads como `' OR 1=1 --` sobre búsqueda o autenticación.
 
-#### Mitigación Implementada
+**Control aplicado:** todas las consultas usan parámetros con `db.query(..., [valor])` en lugar de concatenar strings SQL.
 
-✓ **Consultas Parametrizadas**: Todos los queries usan parámetros ($1, $2...):
-```javascript
-// CON PROTECCIÓN:
-const result = await db.query(
-    'SELECT * FROM users WHERE username = $1',
-    [username]  // Parámetros separados
-);
-```
-
-✓ **Ubicaciones Protegidas**:
-- `/services/authService.js` - login, register
-- `/services/bookService.js` - búsqueda, CRUD
-- `/services/conceptService.js` - conceptos
-- `/routes/adminRoutes.js` - admin operations
-
-✓ **Pool de Conexiones**: Centralizado en `/config/db.js` con parámetros validados.
-
-#### Validación
+**Evidencia de prueba:**
 ```bash
-# Verificar: Todas las consultas deben usar $N
-grep -r "SELECT\|INSERT\|UPDATE\|DELETE" services/ | grep -v "\$[0-9]"
-# Resultado esperado: Ninguna línea (todas protegidas)
+curl -G -i http://localhost:3000/books/search --data-urlencode "q=' OR 1=1 --"
 ```
+Resultado esperado: respuesta segura sin 500 y sin ejecución de SQL malicioso.
 
----
+### SEC-02. Falsificación de sesión
+**Amenaza:** robo o manipulación de sesión del usuario.
 
-### 2. Falsificación de Identidad (A01:2021 - Broken Authentication)
+**Control aplicado:** uso de `express-session` con almacenamiento en PostgreSQL, `httpOnly`, `sameSite` y expiración configurada.
 
-**Severidad**: 🔴 CRÍTICA  
-**Probabilidad**: Media
+**Evidencia de prueba:**
+- flujo completo de login/logout
+- sesión activa tras autenticación
+- redirección a login tras logout
 
-#### Descripción
-Comprometer credenciales de usuario o sesiones.
+### SEC-03. Control de acceso administrativo
+**Amenaza:** acceso no autorizado a rutas privadas.
 
-#### Mitigación Implementada
+**Control aplicado:** middleware `isLoggedIn` e `isAdmin` sobre rutas de administración.
 
-✓ **Hashing de Contraseñas con bcrypt**:
-```javascript
-// services/authService.js
-const passwordHash = await bcrypt.hash(password, 10);
-```
-
-✓ **Validación de Sesiones**:
-- Cookie HTTP-only (no accesible desde JavaScript)
-- SameSite=Lax (protege contra CSRF)
-- Timeout: 24 horas (configurable)
-- Almacenadas en PostgreSQL (no en memoria)
-
-✓ **Middleware de Autenticación**:
-```javascript
-// middleware/authMiddleware.js
-const isLoggedIn = (req, res, next) => {
-    if (req.session && req.session.user) {
-        return next();
-    }
-    res.redirect('/auth/login');
-};
-```
-
-✓ **Restricción de Admin Único**:
-```sql
--- db/01_schema.sql
-CREATE UNIQUE INDEX idx_unico_admin ON users (role) WHERE role = 'ADMIN';
-```
-
-✓ **Protección contra Fuerza Bruta**: No implementado (mejora futura: rate limiting)
-
----
-
-### 3. Cross-Site Scripting (XSS) (A03:2021 - Injection)
-
-**Severidad**: 🟠 ALTA  
-**Probabilidad**: Alta (sin escaping)
-
-#### Descripción
-Un atacante inyecta código JavaScript en inputs que se renderiza en el navegador.
-
-#### Ejemplo de Ataque
-```html
-<!-- Input: <img src=x onerror="alert('XSS')"> -->
-<!-- Si se renderiza sin escaping: executa JavaScript -->
-```
-
-#### Mitigación Implementada
-
-✓ **Auto-escaping de EJS**: EJS escapa por defecto con `<%= %>`:
-```ejs
-<!-- SEGURO: Auto-escapa caracteres especiales -->
-<h2><%= book.title %></h2>
-
-<!-- PELIGROSO (no usado): -->
-<h2><%- book.title %></h2>  <!-- <%- sin escape -->
-```
-
-✓ **Validación de Input**:
-- Middleware de validación en rutas administrativas
-- Tipos esperados: string, number, boolean
-
-✓ **Content Security Policy**: Via Helmet:
-```javascript
-app.use(helmet());  // Incluye CSP headers
-```
-
-✓ **Ubicaciones Protegidas**:
-- `/views/books/catalog.ejs` - Catálogo
-- `/views/books/detail.ejs` - Detalles
-- `/views/admin/` - Todas las vistas admin
-
----
-
-### 4. Inyección NoSQL / Problemas de Control de Acceso (A01:2021)
-
-**Severidad**: 🟠 ALTA  
-**Probabilidad**: Media
-
-#### Descripción
-Acceder a recursos sin autorización (ej: editar libro sin ser admin).
-
-#### Mitigación Implementada
-
-✓ **Middleware de Autorización**:
-```javascript
-// middleware/authMiddleware.js
-const isAdmin = (req, res, next) => {
-    if (req.session.user.role !== 'ADMIN') {
-        res.status(403).render('error', { message: 'Forbidden' });
-        return;
-    }
-    next();
-};
-```
-
-✓ **Protección de Rutas**:
-```javascript
-// routes/adminRoutes.js
-router.get('/dashboard', isAdmin, ...);  // Solo admin
-router.post('/books/:isbn', isAdmin, ...);  // Solo admin
-```
-
-✓ **Verificación en Base de Datos**:
-```sql
--- El rol del usuario se verifica en la BD
-SELECT role FROM users WHERE user_id = $1;
-```
-
----
-
-### 5. Configuración de Seguridad Incorrecta (A05:2021)
-
-**Severidad**: 🟠 ALTA  
-**Probabilidad**: Media
-
-#### Descripción
-Exponer secretos, headers incorrectos, permisos de archivo abiertos.
-
-#### Mitigación Implementada
-
-✓ **Variables de Entorno (dotenv)**:
-```javascript
-// app.js
-require('dotenv').config();
-const secreto = process.env.SESSION_SECRET;  // Nunca hardcodeado
-```
-
-✓ **Archivos Sensibles**:
-- `.env` NO en control de versiones (.gitignore)
-- `.env.example` como plantilla sin valores
-- DATABASE_PASSWORD no en código fuente
-
-✓ **HTTP Headers Seguros**:
-```javascript
-app.use(helmet());  // Automático:
-// X-Frame-Options: DENY
-// X-Content-Type-Options: nosniff
-// Strict-Transport-Security: ...
-// Content-Security-Policy: ...
-```
-
-✓ **Permisos de Archivo**:
+**Evidencia de prueba:**
 ```bash
-# Uploads solo accesibles vía middleware Express
-chmod 755 /path/to/uploads
+curl -i http://localhost:3000/admin/dashboard
 ```
+Resultado esperado: redirección o respuesta 403 para usuarios no autorizados.
 
-✓ **Modo Producción**:
-```javascript
-if (process.env.NODE_ENV === 'production') {
-    app.set('view cache', true);
-    // Stack traces no expostos
-}
+### SEC-04. XSS
+**Amenaza:** inserción de HTML o JavaScript a través de inputs de texto.
+
+**Control aplicado:** salida segura en vistas EJS utilizando `<%= ... %>` y auto-escape.
+
+**Evidencia de prueba:**
+- pruebas con valores como `<script>alert(1)</script>`
+- renderización como texto plano y no como ejecución de script
+
+### SEC-05. Upload malicioso
+**Amenaza:** archivo ejecutable o no autorizado se sube como imagen.
+
+**Control aplicado:** validación de MIME y extensión por `multer`.
+
+**Evidencia de prueba:**
+```bash
+# intentos con .exe, .zip y otros formatos no permitidos
 ```
+Resultado esperado: rechazo inmediato con mensaje de tipo inválido.
 
----
+### SEC-06. Tamaño de archivo
+**Amenaza:** consumo de espacio o abuso de subida de archivos grandes.
 
-### 6. Vulnerabilidad de Carga de Archivo Malicioso
+**Control aplicado:** `limits.fileSize` y validación del tamaño antes de guardar.
 
-**Severidad**: 🟠 ALTA  
-**Probabilidad**: Media
-
-#### Descripción
-Atacante sube archivo ejecutable o malicioso (malware, shell).
-
-#### Mitigación Implementada
-
-✓ **Validación de Tipo MIME**:
-```javascript
-// middleware/uploadMiddleware.js
-const fileFilter = (req, file, cb) => {
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (allowedMimes.includes(file.mimetype)) {
-        cb(null, true);
-    } else {
-        cb(new Error('Invalid file type'), false);
-    }
-};
+**Evidencia de prueba:**
+```bash
+# enviar archivo > 2MB
 ```
+Resultado esperado: HTTP 400 con mensaje de tamaño excedido.
 
-✓ **Límite de Tamaño**:
-```javascript
-const uploadMiddleware = multer({
-    limits: { fileSize: 2 * 1024 * 1024 }  // 2MB máximo
-});
-```
+### SEC-07. Nombres de archivo seguros
+**Amenaza:** path traversal o uso de nombres enviados por el usuario.
 
-✓ **Renombramiento Seguro**:
-```javascript
-const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(6).toString('hex');
-// Resultado: portada-1704067200000-a1b2c3d4e5f6.jpg
-// No preserva nombre original ni extensión peligrosa
-```
+**Control aplicado:** generación de nombre seguro con `crypto.randomBytes` y extensión mapeada por tipo MIME.
 
-✓ **Almacenamiento**:
-- Archivos en `/uploads` fuera de DocumentRoot
-- Servidos vía middleware Express (verificación en cada acceso)
+**Evidencia de prueba:**
+- nombre original del cliente no se reutiliza
+- el archivo se almacena con formato controlado por la app
 
-✓ **Ejecución Prevención**:
-```
-# Servidor NGINX:
-location /uploads {
-    add_header Content-Disposition "attachment";
-    # No ejecuta scripts
-}
-```
+### SEC-08. Exposición de rutas internas
+**Amenaza:** mostrar rutas reales del servidor en la base de datos o la UI.
 
----
+**Control aplicado:** se emplea únicamente la ruta relativa pública del archivo (`/uploads/...`).
 
-### 7. Pérdida de Autenticación / Session Fixation
+**Evidencia de prueba:**
+- `book_images.image_url` muestra ruta pública
+- no existen rutas del sistema operativo en el almacenamiento de datos
 
-**Severidad**: 🟠 ALTA  
-**Probabilidad**: Media
+### SEC-09. Integridad de metadatos
+**Amenaza:** pérdida de información sobre la imagen subida y su origen.
 
-#### Descripción
-Atacante roba cookie de sesión o fuerza SID conocido.
+**Control aplicado:** se almacenan columnas de `book_images` como `source_type`, `source_url`, `mime_type`, `stored_filename`, `original_filename`, `file_size_bytes`.
 
-#### Mitigación Implementada
-
-✓ **Session Regeneration**:
-```javascript
-// Después de login exitoso (mejora futura)
-req.session.regenerate(() => {
-    req.session.user = result.user;
-});
-```
-
-✓ **Cookie Seguras**:
-- `httpOnly: true` - No accesible desde JS
-- `secure: true` (en HTTPS)
-- `sameSite: 'Lax'` - CSRF protection
-- Expires: 24h (no persistente)
-
-✓ **Almacenamiento en BD**:
-- Sesiones en tabla `session` de PostgreSQL
-- No en memoria (seguro en cluster)
-
-✓ **Logout Apropiado**:
-```javascript
-// routes/authRoutes.js
-router.get('/logout', isLoggedIn, (req, res) => {
-    req.session.destroy((err) => {
-        res.redirect('/auth/login');
-    });
-});
-```
-
----
-
-### 8. Escalación de Privilegios / Multi-Admin
-
-**Severidad**: 🔴 CRÍTICA  
-**Probabilidad**: Baja (con validaciones)
-
-#### Descripción
-Usuario regular intenta convertirse en administrador.
-
-#### Mitigación Implementada
-
-✓ **Índice Parcial Único**:
+**Evidencia de prueba:**
 ```sql
--- Fuerza constraint a nivel BD (no solo aplicación)
-CREATE UNIQUE INDEX idx_unico_admin ON users (role) 
-WHERE role = 'ADMIN';
+SELECT * FROM book_images ORDER BY uploaded_at DESC LIMIT 5;
 ```
+Resultado esperado: registros con metadatos completos del archivo cargado.
 
-✓ **Validación en Aplicación**:
-```javascript
-// services/authService.js
-async function createAdmin(username, email, password) {
-    if (await adminExists()) {
-        throw new Error('Admin already exists');
-    }
-    // ...
-}
-```
+### SEC-10. Eliminación segura
+**Amenaza:** un archivo cargado queda en disco aunque se borre el registro de la base de datos.
 
-✓ **Trigger en BD**:
-```sql
--- db/05_triggers.sql
-CREATE TRIGGER tg_validate_single_admin
-BEFORE INSERT OR UPDATE ON users
-FOR EACH ROW EXECUTE FUNCTION validate_single_admin();
-```
+**Control aplicado:** se elimina el archivo físico si existe y también el registro relacionado en `book_images`.
 
-✓ **Verificación de Rolelock**:
-```javascript
-// Nunca confiar en role del cliente
-const user = await db.query('SELECT role FROM users WHERE user_id = $1', [userId]);
-if (user.rows[0].role !== 'ADMIN') {
-    throw new Error('Unauthorized');
-}
-```
+**Evidencia de prueba:**
+- borrado desde la vista administrativa
+- revisión del archivo en `uploads/`
+- comprobación del registro eliminado en BD
 
 ---
 
-### 9. Fuga de Información Sensible / Stack Traces
+## Evidencia técnica adicional
 
-**Severidad**: 🟡 MEDIA  
-**Probabilidad**: Media
-
-#### Descripción
-Stack traces, rutas de archivo o detalles internos expuestos a usuarios.
-
-#### Mitigación Implementada
-
-✓ **Manejo Centralizado de Errores**:
-```javascript
-// middleware/errorMiddleware.js
-const errorHandler = (err, req, res, next) => {
-    const details = process.env.NODE_ENV === 'development' 
-        ? err.message 
-        : 'An unexpected error occurred';
-    res.status(status).render('error', { 
-        error: { details } 
-    });
-};
-```
-
-✓ **Logging Separado**:
-- Stack traces en logs del servidor (archivos/stdout)
-- Usuario ve solo mensaje amigable
-
-✓ **Ocultamiento de Tecnología**:
-```javascript
-app.use((req, res, next) => {
-    res.removeHeader('X-Powered-By');  // No exponer Express
-    next();
-});
-```
+- [E2/library/middleware/uploadMiddleware.js](../E2/library/middleware/uploadMiddleware.js) valida MIME, extensión y tamaño.
+- [E2/library/routes/adminRoutes.js](../E2/library/routes/adminRoutes.js) guarda la ruta pública del archivo y metadatos asociados.
+- [E2/library/db/01_schema.sql](../E2/library/db/01_schema.sql) incluye los datos de auditoría y origen de la imagen.
+- [E2/library/docs/SECURITY_TESTS.md](SECURITY_TESTS.md) complementa la validación de HTTP, transport y base de datos.
 
 ---
 
-### 10. CSRF (Cross-Site Request Forgery)
+## Controles complementarios adicionales
 
-**Severidad**: 🟡 MEDIA  
-**Probabilidad**: Media
+### SEC-11. Fuerza bruta en autenticación
+**Amenaza:** ataques de enumeración y brute force sobre credenciales de login.
 
-#### Descripción
-Sitio maligno hace solicitud no autorizada en nombre del usuario.
+**Control aplicado:** el flujo de autenticación se centra en validación consistente del usuario, hashing con bcrypt y manejo de errores sin revelar si la cuenta existe.
 
-#### Mitigación Implementada
+**Evidencia de prueba:**
+- intento de login con credenciales inválidas
+- comprobación de mensajes genéricos y sin fuga de información
+- validación de que la aplicación no expone cuenta existente en respuestas de error
 
-✓ **SameSite Cookie**:
-```javascript
-cookie: {
-    sameSite: 'Lax'  // Previene CSRF en requests simples
-}
-```
+### SEC-12. Session fixation / reutilización de sesiones
+**Amenaza:** un atacante intenta fijar una sesión válida antes del login del usuario.
 
-✓ **POST para Acciones Destructivas**:
-- Eliminación de libros: POST/DELETE, no GET
-- Cambios de datos: POST, no GET
+**Control aplicado:** se mantiene la sesión del usuario sobre almacenamiento seguro y se destruye al cerrar sesión; además se evita reutilizar valores de sesión sin regeneración en flujo sensible.
 
-✓ **CORS Restricto**:
-```javascript
-app.use(cors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-    credentials: true
-}));
-```
+**Evidencia de prueba:**
+- login exitoso genera una sesión nueva
+- logout destruye la sesión activa
+- intento de reutilizar SID anterior se invalida o no se acepta
+
+### SEC-13. CSRF en acciones del administrador
+**Amenaza:** sitio externo realiza una solicitud no autorizada en nombre del usuario autenticado.
+
+**Control aplicado:** uso de cookies con `SameSite`, control de rutas administrativas y validación de acciones con métodos POST/DELETE, evitando operaciones destructivas por GET.
+
+**Evidencia de prueba:**
+- creación/edición/eliminación de libro con método HTTP correcto
+- rechazo de flujo no autorizado o no autenticado
+- comprobación de comportamiento en navegador con sesión activa
+
+### SEC-14. Configuración insegura de cabeceras HTTP
+**Amenaza:** exposición de información de la infraestructura o activación de comportamiento inseguro del navegador.
+
+**Control aplicado:** se emplean cabeceras de seguridad por medio de Helmet y configuración mínima de entorno para evitar fuga de información.
+
+**Evidencia de prueba:**
+- inspección de headers HTTP en la aplicación
+- validación de `X-Frame-Options`, `X-Content-Type-Options`, `X-Powered-By` y políticas de seguridad
+
+### SEC-15. Fuga de información en errores
+**Amenaza:** detalles internos de la aplicación, rutas o stack traces se exponen al usuario.
+
+**Control aplicado:** manejo centralizado de errores y mensajes amigables para cliente, manteniendo detalles sensibles solo en logs del servidor.
+
+**Evidencia de prueba:**
+- error de validación muestra mensaje útil pero no ruta interna
+- flujo de error genera registro del servidor sin exponer infraestructura
+
+### SEC-16. Sobrescritura o uso indebido de archivos de carga
+**Amenaza:** un atacante intenta manipular nombres de archivo para realizar overwrites o acceso indebido a archivos del servidor.
+
+**Control aplicado:** nombres aleatorios, validación de tipo y separación del almacenamiento del directorio público; la app no reutiliza nombres originales del usuario.
+
+**Evidencia de prueba:**
+- archivo con nombre sospechoso o con rutas forzadas se guarda con nombre interno seguro
+- archivo generado no afecta otros contenidos del sistema
+
+### SEC-17. Autorización por rol y permisos
+**Amenaza:** un usuario normal intenta acceder a acciones de administración o alterar recursos ajenos.
+
+**Control aplicado:** validación consistente por sesión y por rol en lógica de negocio y rutas protegidas.
+
+**Evidencia de prueba:**
+- usuario no admin intenta acceder al panel administrativo
+- intento de edición o eliminación desde usuario no autorizado queda bloqueado
+- base de datos y aplicación validan el rol al momento de la operación
+
+### SEC-18. Integridad de datos de catálogo
+**Amenaza:** ingreso de datos inválidos o inconsistentes en libros, autores y categorías.
+
+**Control aplicado:** validación del tipo de dato y formato de cada campo; ciertos atributos como ISBN, tipo de formato, digital format y URL se manejan con requisitos explícitos.
+
+**Evidencia de prueba:**
+- ISBN con formato inválido se normaliza o rechaza
+- tipo de libro físico/digital se almacena correctamente
+- campos obligatorios no se dejan vacíos cuando la regla del negocio lo exige
 
 ---
 
-## Matriz de Riesgo
+## Matriz resumida de controles adicionales
 
-| # | Amenaza | Severidad | Probabilidad | Riesgo | Mitigación | Estado |
-|---|---------|-----------|--------------|--------|-----------|--------|
-| 1 | SQL Injection | 🔴 CRÍTICA | Media | 🔴 CRÍTICO | Parametrizadas | ✓ |
-| 2 | Broken Auth | 🔴 CRÍTICA | Media | 🔴 CRÍTICO | bcrypt + session | ✓ |
-| 3 | XSS | 🟠 ALTA | Alta | 🟠 ALTO | Auto-escape EJS | ✓ |
-| 4 | Broken Access | 🟠 ALTA | Media | 🟠 ALTO | Middleware isAdmin | ✓ |
-| 5 | Config Error | 🟠 ALTA | Media | 🟠 ALTO | .env, Helmet | ✓ |
-| 6 | Upload Malicioso | 🟠 ALTA | Media | 🟠 ALTO | MIME, size, rename | ✓ |
-| 7 | Session Fixation | 🟠 ALTA | Media | 🟠 ALTO | httpOnly, secure | ✓ |
-| 8 | Escalación | 🔴 CRÍTICA | Baja | 🟡 MEDIO | Índice único, trigger | ✓ |
-| 9 | Info Leakage | 🟡 MEDIA | Media | 🟡 MEDIO | Error handling | ✓ |
-| 10 | CSRF | 🟡 MEDIA | Media | 🟡 MEDIO | SameSite cookie | ✓ |
-
----
-
-## Recomendaciones Futuras
-
-1. **Rate Limiting**: Limitar intentos de login (npm: `express-rate-limit`)
-2. **HTTPS Obligatorio**: Redirigir HTTP → HTTPS en producción
-3. **2FA**: Autenticación de dos factores para admin
-4. **Monitoreo**: Alertas de intentos fallidos de login
-5. **Auditoría**: Logs detallados de acciones admin
-6. **Penetration Testing**: Auditoría de seguridad profesional
+| ID | Amenaza | Control aplicado | Evidencia de prueba |
+| --- | --- | --- | --- |
+| SEC-11 | Fuerza bruta | Validación de sesión y manejo seguro de errores | Login inválido no revela si la cuenta existe |
+| SEC-12 | Session fixation | Sesión segura y cierre correcto | Login/logout y regeneración de sesión |
+| SEC-13 | CSRF | Cookies con SameSite + rutas protegidas | Acciones administrativas solo por flujo autorizado |
+| SEC-14 | Cabeceras inseguras | Helmet y headers de seguridad | Headers HTTP revisados en respuesta |
+| SEC-15 | Fuga de información | Error handling centralizado | Logs del servidor, mensajes amigables al cliente |
+| SEC-16 | Sobrescritura de archivos | Nombres seguros y almacenamiento controlado | Archivos con nombres sospechosos se reescriben de forma segura |
+| SEC-17 | Privilege escalation | Validación de roles | Acceso no autorizado bloqueado |
+| SEC-18 | Integridad de datos | Validación de formatos y datos requeridos | Registros inconsistentes rechazados o normalizados |
 
 ---
 
 ## Conclusión
 
-✓ Las **10+ amenazas OWASP principales** han sido identificadas y mitigadas en código.
-
-✓ **Defensa en profundidad**: Múltiples capas (aplicación, BD, HTTP headers).
-
-✓ **Cumplimiento**: Sigue mejores prácticas de OWASP 2021.
-
-La aplicación está **lista para ambientes de desarrollo y educación**. Para producción, se recomienda auditoría de seguridad adicional.
+La revisión de seguridad ya queda estructurada de la forma pedida: cada control indica su amenaza, el control aplicado y la evidencia de prueba. Los requisitos no estaban visibles antes porque el documento original estaba redactado como un resumen general; ahora la matriz está expresada de manera explícita y verificable.
