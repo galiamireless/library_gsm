@@ -39,9 +39,9 @@ router.get('/books/new', isAdmin, asyncHandler(async (req, res) => {
 
 // POST: Crear libro
 router.post('/books', isAdmin, asyncHandler(async (req, res) => {
-    const { isbn, title, description, publication_year, price, stock, format_id, publisher } = req.body;
+    const { isbn, title, description, publication_year, price, stock, format_id, publisher, format_type, digital_format } = req.body;
 
-    const result = await bookService.createBook(isbn, title, description, publication_year, price, stock, format_id, publisher);
+    const result = await bookService.createBook(isbn, title, description, publication_year, price, stock, format_id, publisher, format_type, digital_format);
 
     if (!result.success) {
         const formatsResult = await db.query('SELECT format_id, name FROM formats ORDER BY name');
@@ -84,9 +84,9 @@ router.get('/books/edit/:isbn', isAdmin, asyncHandler(async (req, res) => {
 // POST: Actualizar libro
 router.post('/books/:isbn', isAdmin, asyncHandler(async (req, res) => {
     const { isbn } = req.params;
-    const { title, description, publication_year, price, stock, format_id, publisher } = req.body;
+    const { title, description, publication_year, price, stock, format_id, publisher, format_type, digital_format } = req.body;
 
-    const result = await bookService.updateBook(isbn, title, description, publication_year, price, stock, format_id, publisher);
+    const result = await bookService.updateBook(isbn, title, description, publication_year, price, stock, format_id, publisher, format_type, digital_format);
 
     if (!result.success) {
         return res.status(400).render('error', {
@@ -117,23 +117,46 @@ router.get('/books/:isbn/images', isAdmin, asyncHandler(async (req, res) => {
 // POST: Cargar imagen para un libro
 router.post('/books/:isbn/upload-image', isAdmin, uploadSingle, handleUploadError, asyncHandler(async (req, res) => {
     const { isbn } = req.params;
+    const { image_url, alt_text, is_cover } = req.body;
 
-    if (!req.file) {
+    let imageUrl = image_url || null;
+    let finalFile = req.file || null;
+
+    if (!finalFile && !imageUrl) {
         return res.status(400).json({
             success: false,
-            message: 'No file uploaded'
+            message: 'No file uploaded or image URL provided'
         });
     }
 
-    // Construir URL de la imagen
-    const imageUrl = `/uploads/${req.file.filename}`;
-    const altText = req.body.alt_text || 'Book cover';
-    const isCover = req.body.is_cover === 'true';
+    const altText = alt_text || 'Book cover';
+    const coverFlag = is_cover === 'true';
+    const sourceType = finalFile ? 'upload' : 'url';
+    const storedFilename = finalFile ? finalFile.filename : null;
+    const sourceUrl = finalFile ? `/uploads/${finalFile.filename}` : imageUrl;
+
+    if (finalFile) {
+        imageUrl = `/uploads/${finalFile.filename}`;
+    }
 
     try {
         await db.query(
-            'INSERT INTO book_images (isbn, image_url, alt_text, is_cover) VALUES ($1, $2, $3, $4)',
-            [isbn, imageUrl, altText, isCover]
+            `INSERT INTO book_images (
+                isbn, image_url, alt_text, is_cover, source_type, source_url,
+                original_filename, stored_filename, mime_type, file_size_bytes
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            [
+                isbn,
+                imageUrl,
+                altText,
+                coverFlag,
+                sourceType,
+                imageUrl,
+                finalFile ? finalFile.originalname : null,
+                storedFilename,
+                finalFile ? finalFile.mimetype : null,
+                finalFile ? finalFile.size : 0
+            ]
         );
 
         res.json({
@@ -141,12 +164,15 @@ router.post('/books/:isbn/upload-image', isAdmin, uploadSingle, handleUploadErro
             message: 'Image uploaded successfully',
             image: {
                 url: imageUrl,
-                filename: req.file.filename
+                filename: storedFilename,
+                alt_text: altText,
+                is_cover: coverFlag
             }
         });
     } catch (error) {
-        // Eliminar archivo si la BD falla
-        await fs.unlink(path.join(__dirname, '../uploads', req.file.filename)).catch(() => {});
+        if (finalFile) {
+            await fs.unlink(path.join(__dirname, '../uploads', finalFile.filename)).catch(() => {});
+        }
         throw error;
     }
 }));
@@ -155,9 +181,8 @@ router.post('/books/:isbn/upload-image', isAdmin, uploadSingle, handleUploadErro
 router.delete('/images/:imageId', isAdmin, asyncHandler(async (req, res) => {
     const { imageId } = req.params;
 
-    // Obtener ruta de archivo
     const imageResult = await db.query(
-        'SELECT image_url FROM book_images WHERE image_id = $1',
+        'SELECT image_url, stored_filename FROM book_images WHERE image_id = $1',
         [imageId]
     );
 
@@ -169,17 +194,19 @@ router.delete('/images/:imageId', isAdmin, asyncHandler(async (req, res) => {
     }
 
     const imageUrl = imageResult.rows[0].image_url;
+    const storedFilename = imageResult.rows[0].stored_filename;
 
-    // Eliminar de BD
     await db.query('DELETE FROM book_images WHERE image_id = $1', [imageId]);
 
-    // Eliminar archivo del sistema
-    const filePath = path.join(__dirname, '../public', imageUrl);
-    await fs.unlink(filePath).catch(() => {});
+    if (storedFilename) {
+        const filePath = path.join(__dirname, '../uploads', storedFilename);
+        await fs.unlink(filePath).catch(() => {});
+    }
 
     res.json({
         success: true,
-        message: 'Image deleted successfully'
+        message: 'Image deleted successfully',
+        image_url: imageUrl
     });
 }));
 

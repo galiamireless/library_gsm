@@ -45,6 +45,8 @@
                                 <tr><th class="text-muted">Editorial</th><td><%= book.publisher || 'Desconocida' %></td></tr>
                                 <tr><th class="text-muted">Año</th><td><%= book.publication_year || 'N/A' %></td></tr>
                                 <tr><th class="text-muted">Formato</th><td><%= book.format || 'Desconocido' %></td></tr>
+                                <tr><th class="text-muted">Tipo</th><td><%= book.format_type === 'DIGITAL' ? 'Digital' : 'Físico' %></td></tr>
+                                <tr><th class="text-muted">Formato digital</th><td><%= book.format_type === 'DIGITAL' ? (book.digital_format || 'No especificado') : 'N/A' %></td></tr>
                                 <tr><th class="text-muted">Autores</th><td><%= book.authors || 'Desconocidos' %></td></tr>
                                 <tr><th class="text-muted">Géneros</th><td><%= book.genres || 'General' %></td></tr>
                                 <tr><th class="text-muted">Precio</th><td class="price-tag">$<%= Number(book.price || 0).toFixed(2) %></td></tr>

@@ -63,6 +63,8 @@ CREATE TABLE books (
     price DECIMAL(10, 2) NOT NULL CHECK (price >= 0),
     stock INTEGER NOT NULL CHECK (stock >= 0),
     format_id INTEGER REFERENCES formats(format_id),
+    format_type VARCHAR(20) NOT NULL DEFAULT 'PHYSICAL' CHECK (format_type IN ('PHYSICAL', 'DIGITAL')),
+    digital_format VARCHAR(10) CHECK (digital_format IN ('PDF', 'EPUB')),
     publisher VARCHAR(150),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -98,6 +100,12 @@ CREATE TABLE book_images (
     image_url VARCHAR(500) NOT NULL,
     alt_text VARCHAR(255),
     is_cover BOOLEAN DEFAULT FALSE,
+    source_type VARCHAR(20) NOT NULL DEFAULT 'upload' CHECK (source_type IN ('upload', 'url')),
+    source_url VARCHAR(500),
+    original_filename VARCHAR(255),
+    stored_filename VARCHAR(255),
+    mime_type VARCHAR(50),
+    file_size_bytes INTEGER DEFAULT 0,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -7,70 +7,77 @@ const multer = require('multer');
 const path = require('path');
 const crypto = require('crypto');
 
-// Configuración de almacenamiento
+const allowedMimeTypes = new Map([
+    ['image/jpeg', '.jpg'],
+    ['image/png', '.png'],
+    ['image/webp', '.webp']
+]);
+
+const allowedExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+const maxFileSize = parseInt(process.env.MAX_FILE_SIZE) || 2 * 1024 * 1024;
+
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        // Los archivos se guardan en la carpeta 'uploads'
         cb(null, path.join(__dirname, '../uploads'));
     },
     filename: (req, file, cb) => {
-        // Generar nombre de archivo seguro: hash_timestamp_original
-        const uniqueSuffix = Date.now() + '-' + crypto.randomBytes(6).toString('hex');
-        const ext = path.extname(file.originalname);
-        const name = path.basename(file.originalname, ext);
-        cb(null, `${name}-${uniqueSuffix}${ext}`);
+        const mimeType = file.mimetype.toLowerCase();
+        const extension = allowedMimeTypes.get(mimeType) || '.jpg';
+        const safeToken = crypto.randomBytes(12).toString('hex');
+        cb(null, `${Date.now()}-${safeToken}${extension}`);
     }
 });
 
-// Filtro de tipos MIME permitidos
 const fileFilter = (req, file, cb) => {
-    // Tipos MIME permitidos
-    const allowedMimes = process.env.ALLOWED_MIME_TYPES?.split(',') || 
-                         ['image/jpeg', 'image/png', 'image/webp'];
+    const mimeType = file.mimetype ? file.mimetype.toLowerCase() : '';
+    const extension = path.extname(file.originalname || '').toLowerCase();
 
-    if (allowedMimes.includes(file.mimetype)) {
-        cb(null, true);
-    } else {
-        cb(new Error(`Invalid file type: ${file.mimetype}. Allowed: JPEG, PNG, WebP`), false);
+    if (!allowedMimeTypes.has(mimeType) || !allowedExtensions.has(extension)) {
+        return cb(new Error('Invalid file type: only JPG, PNG and WebP are allowed.'), false);
     }
+
+    cb(null, true);
 };
 
-// Crear instancia de multer con límites
 const uploadMiddleware = multer({
-    storage: storage,
-    fileFilter: fileFilter,
+    storage,
+    fileFilter,
     limits: {
-        fileSize: parseInt(process.env.MAX_FILE_SIZE) || 2 * 1024 * 1024, // 2MB por defecto
-        files: 1 // Un archivo por vez
+        fileSize: maxFileSize,
+        files: 1
     }
 });
 
-// Middleware: Manejo de errores de carga
 const handleUploadError = (err, req, res, next) => {
     if (err instanceof multer.MulterError) {
         if (err.code === 'FILE_TOO_LARGE') {
             return res.status(400).json({
                 success: false,
-                message: 'File size exceeds maximum limit of 2MB'
+                message: `File size exceeds the maximum of ${Math.round(maxFileSize / (1024 * 1024))}MB.`
             });
         }
         if (err.code === 'LIMIT_FILE_COUNT') {
             return res.status(400).json({
                 success: false,
-                message: 'Only one file is allowed'
+                message: 'Only one file is allowed at a time.'
             });
         }
-    } else if (err) {
+    }
+
+    if (err) {
         return res.status(400).json({
             success: false,
             message: err.message
         });
     }
+
     next();
 };
 
 module.exports = {
     uploadSingle: uploadMiddleware.single('image'),
     uploadMultiple: uploadMiddleware.array('images', 5),
-    handleUploadError
+    handleUploadError,
+    allowedMimeTypes,
+    maxFileSize
 };

@@ -149,13 +149,17 @@ async function getAllBooks(page = 1, perPage = 10, category = '') {
     }
 }
 
+function normalizeIsbnText(value) {
+    return String(value || '').trim().toLowerCase().replace(/[^0-9x]/g, '');
+}
+
 // Obtener libro por ISBN con todos sus detalles
 async function getBookByISBN(isbn) {
     try {
         const result = await db.query(
             `SELECT 
                 b.isbn, b.title, b.description, b.price, b.stock, b.publication_year,
-                b.publisher, f.name as format,
+                b.publisher, b.format_type, b.digital_format, f.name as format,
                 STRING_AGG(DISTINCT a.name, ', ') as authors,
                 STRING_AGG(DISTINCT g.name, ', ') as genres
             FROM books b
@@ -165,7 +169,7 @@ async function getBookByISBN(isbn) {
             LEFT JOIN book_genres bg ON b.isbn = bg.isbn
             LEFT JOIN genres g ON bg.genre_id = g.genre_id
             WHERE b.isbn = $1
-            GROUP BY b.isbn, b.title, b.description, b.price, b.stock, b.publication_year, b.publisher, f.name`,
+            GROUP BY b.isbn, b.title, b.description, b.price, b.stock, b.publication_year, b.publisher, b.format_type, b.digital_format, f.name`,
             [isbn]
         );
 
@@ -194,7 +198,10 @@ async function getBookByISBN(isbn) {
 async function searchBooks(searchTerm, minPrice = 0, maxPrice = 999999, page = 1, perPage = 10) {
     try {
         const offset = (page - 1) * perPage;
-        const searchPattern = `%${(searchTerm || '').trim()}%`;
+        const trimmedTerm = (searchTerm || '').trim();
+        const searchPattern = `%${trimmedTerm}%`;
+        const normalizedSearchTerm = normalizeIsbnText(trimmedTerm);
+        const normalizedIsbnPattern = normalizedSearchTerm ? `%${normalizedSearchTerm}%` : '%';
 
         const result = await db.query(
             `SELECT 
@@ -205,12 +212,18 @@ async function searchBooks(searchTerm, minPrice = 0, maxPrice = 999999, page = 1
             FROM books b
             LEFT JOIN book_authors ba ON b.isbn = ba.isbn
             LEFT JOIN authors a ON ba.author_id = a.author_id
-            WHERE (b.title ILIKE $1 OR b.isbn ILIKE $1 OR b.description ILIKE $1 OR a.name ILIKE $1)
+            WHERE (
+                b.title ILIKE $1
+                OR b.isbn ILIKE $1
+                OR b.description ILIKE $1
+                OR a.name ILIKE $1
+                OR REPLACE(REPLACE(REPLACE(LOWER(b.isbn), '-', ''), ' ', ''), '_', '') LIKE $6
+            )
               AND b.price BETWEEN $2 AND $3
             GROUP BY b.isbn, b.title, b.description, b.price, b.stock, b.publication_year
             ORDER BY b.title ASC
             LIMIT $4 OFFSET $5`,
-            [searchPattern, minPrice, maxPrice, perPage, offset]
+            [searchPattern, minPrice, maxPrice, perPage, offset, normalizedIsbnPattern]
         );
 
         return {
@@ -222,9 +235,11 @@ async function searchBooks(searchTerm, minPrice = 0, maxPrice = 999999, page = 1
         };
     } catch (error) {
         const rawTerm = (searchTerm || '').toLowerCase();
+        const normalizedTerm = normalizeIsbnText(searchTerm || '');
         const filtered = fallbackBooks.filter((book) => {
-            const inText = [book.title, book.description, book.authors, book.genres].join(' ').toLowerCase();
-            const matchesQuery = !rawTerm || inText.includes(rawTerm);
+            const inText = [book.title, book.description, book.authors, book.genres, book.isbn].join(' ').toLowerCase();
+            const isbnMatch = !normalizedTerm || normalizeIsbnText(book.isbn).includes(normalizedTerm);
+            const matchesQuery = !rawTerm || inText.includes(rawTerm) || isbnMatch;
             const matchesPrice = Number(book.price) >= Number(minPrice || 0) && Number(book.price) <= Number(maxPrice || 999999);
             return matchesQuery && matchesPrice;
         });
@@ -293,28 +308,31 @@ async function getGenres() {
 }
 
 // Crear nuevo libro
-async function createBook(isbn, title, description, publicationYear, price, stock, formatId, publisher) {
+async function createBook(isbn, title, description, publicationYear, price, stock, formatId, publisher, formatType = 'PHYSICAL', digitalFormat = null) {
     try {
-        // Validar entrada
         if (!isbn || !title) {
             throw new Error('ISBN and title are required');
         }
 
-        // Validar ISBN único
         const existingBook = await db.query('SELECT isbn FROM books WHERE isbn = $1', [isbn]);
         if (existingBook.rows.length > 0) {
             throw new Error('ISBN already exists');
         }
 
-        // Validar price y stock
         if (price < 0) throw new Error('Price cannot be negative');
         if (stock < 0) throw new Error('Stock cannot be negative');
+        if (formatType === 'DIGITAL' && !['PDF', 'EPUB'].includes(digitalFormat)) {
+            throw new Error('Digital books must declare PDF or EPUB format');
+        }
+        if (formatType === 'PHYSICAL') {
+            digitalFormat = null;
+        }
 
         const result = await db.query(
-            `INSERT INTO books (isbn, title, description, publication_year, price, stock, format_id, publisher)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            RETURNING isbn, title, price, stock`,
-            [isbn, title, description, publicationYear, price, stock, formatId, publisher]
+            `INSERT INTO books (isbn, title, description, publication_year, price, stock, format_id, format_type, digital_format, publisher)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            RETURNING isbn, title, price, stock, format_type, digital_format`,
+            [isbn, title, description, publicationYear, price, stock, formatId, formatType, digitalFormat, publisher]
         );
 
         return {
@@ -330,7 +348,7 @@ async function createBook(isbn, title, description, publicationYear, price, stoc
 }
 
 // Actualizar libro
-async function updateBook(isbn, title, description, publicationYear, price, stock, formatId, publisher) {
+async function updateBook(isbn, title, description, publicationYear, price, stock, formatId, publisher, formatType = 'PHYSICAL', digitalFormat = null) {
     try {
         if (!isbn || !title) {
             throw new Error('ISBN and title are required');
@@ -338,13 +356,19 @@ async function updateBook(isbn, title, description, publicationYear, price, stoc
 
         if (price < 0) throw new Error('Price cannot be negative');
         if (stock < 0) throw new Error('Stock cannot be negative');
+        if (formatType === 'DIGITAL' && !['PDF', 'EPUB'].includes(digitalFormat)) {
+            throw new Error('Digital books must declare PDF or EPUB format');
+        }
+        if (formatType === 'PHYSICAL') {
+            digitalFormat = null;
+        }
 
         const result = await db.query(
             `UPDATE books 
-            SET title = $1, description = $2, publication_year = $3, price = $4, stock = $5, format_id = $6, publisher = $7
-            WHERE isbn = $8
-            RETURNING isbn, title, price, stock`,
-            [title, description, publicationYear, price, stock, formatId, publisher, isbn]
+            SET title = $1, description = $2, publication_year = $3, price = $4, stock = $5, format_id = $6, format_type = $7, digital_format = $8, publisher = $9
+            WHERE isbn = $10
+            RETURNING isbn, title, price, stock, format_type, digital_format`,
+            [title, description, publicationYear, price, stock, formatId, formatType, digitalFormat, publisher, isbn]
         );
 
         if (result.rows.length === 0) {

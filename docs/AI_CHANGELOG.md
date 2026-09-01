@@ -218,6 +218,28 @@ Documento que registra todos los cambios, optimizaciones y mejoras generados por
 - min=2, max=10 conexiones PostgreSQL
 - Timeout: 1000ms
 - Idle timeout: 30000ms
+
+---
+
+## [1.5.0] - 2026-08-31 Seguridad de uploads y evidencia documental
+
+### Cambios aplicados
+
+- Se reforzó `middleware/uploadMiddleware.js` para aceptar solo JPG, PNG y WebP con validación de MIME y extensión.
+- Se eliminó el uso de nombres de archivo enviados por el cliente; ahora el sistema genera nombres seguros con hash.
+- Se añadió almacenamiento de metadatos de archivo en `book_images` (`stored_filename`, `mime_type`, `file_size_bytes`, `source_type`, `source_url`, `original_filename`).
+- Se corrigió la eliminación de imágenes para borrar el archivo físico desde la carpeta `uploads` y no rutas internas sensibles.
+- Se añadieron pruebas y evidencias de seguridad en `docs/SECURITY_REVIEW.md` y `docs/TEST_PLAN.md`.
+- Se extendió la documentación de despliegue, roles y credenciales de acceso en la sección de la tarea 2e del reporte `E2/T2.html`.
+- Se registró la evidencia del prompt y del cambio en `docs/AI_PROMPT_HISTORY.md`.
+
+### Validación
+
+- Ejecutado: `cd "C:/Users/galia/OneDrive/Escritorio/7mo semestre/Integracion/pagina web/E2/library" && npm run verify`
+- Resultado: operación correcta con todas las rutas principales pasando.
+
+---
+
 - Reutilización automática
 
 #### Paginación Eficiente
