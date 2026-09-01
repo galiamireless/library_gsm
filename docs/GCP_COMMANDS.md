@@ -14,7 +14,7 @@
 gcloud auth login
 
 # Establecer proyecto por defecto
-gcloud config set project library-app-2024
+gcloud config set project sistemas-integracion-01
 
 # Verificar configuración
 gcloud config list
@@ -26,13 +26,13 @@ gcloud config list
 
 ```bash
 # Crear VPC
-gcloud compute networks create library-vpc \
+gcloud compute networks create maquina01 \
     --subnet-mode=custom \
     --description="VPC for Library Application"
 
 # Crear subred en us-central1
 gcloud compute networks subnets create library-subnet \
-    --network=library-vpc \
+    --network=maquina01 \
     --region=us-central1 \
     --range=10.0.1.0/24 \
     --enable-flow-logs

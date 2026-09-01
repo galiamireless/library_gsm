@@ -14,7 +14,7 @@ Se requería construir una aplicación web para la gestión de una librería con
 3. **Single Page Application (React/Vue)**: Frontend SPA consumiendo API GraphQL o REST.
 
 ### Decisión
-**Monolito Server-Side usando Node.js, Express y EJS** ✓
+**Monolito Server-Side usando Node.js, Express y EJS**
 
 ### Justificación
 - **Simplificidad**: Menor complejidad operacional para una aplicación de gestión de librería.
@@ -30,9 +30,9 @@ Se requería construir una aplicación web para la gestión de una librería con
 - **Fault isolation**: No aplica para monolito.
 
 ### Validación
-- ✓ Arquitectura implementada sin APIs REST o GraphQL.
-- ✓ Patrón MVC con routes, services, middleware.
-- ✓ Renderizado EJS en servidor.
+- Arquitectura implementada sin APIs REST o GraphQL.
+- Patrón MVC con routes, services, middleware.
+- Renderizado EJS en servidor.
 
 ---
 
@@ -51,7 +51,7 @@ Se requiere acceder a PostgreSQL de forma segura y eficiente sin usar herramient
 4. **Prisma**: ORM moderno con schema SDL.
 
 ### Decisión
-**Driver PostgreSQL puro (pg) con consultas parametrizadas** ✓
+**Driver PostgreSQL puro (pg) con consultas parametrizadas**
 
 ### Justificación
 - **Requisito explícito**: El ejercicio prohibe ORMs.
@@ -67,9 +67,9 @@ Se requiere acceder a PostgreSQL de forma segura y eficiente sin usar herramient
 - **Performance**: Optimización manual de índices y queries.
 
 ### Validación
-- ✓ Todas las consultas en services/ usan parámetros ($1, $2...).
-- ✓ Pool de conexiones centralizado en config/db.js.
-- ✓ Sin ORM en package.json.
+- Todas las consultas en services/ usan parámetros ($1, $2...).
+- Pool de conexiones centralizado en config/db.js.
+- Sin ORM en package.json.
 
 ---
 
@@ -88,7 +88,7 @@ Se requiere una interfaz de usuario web para catálogo, búsqueda, autenticació
 4. **Handlebars**: Template engine sin lógica.
 
 ### Decisión
-**EJS Server-Side** ✓
+**EJS Server-Side**
 
 ### Justificación
 - **Simplicidad**: Sintaxis JS directa en plantillas.
@@ -104,9 +104,9 @@ Se requiere una interfaz de usuario web para catálogo, búsqueda, autenticació
 - **Debugging**: Stack traces claros en servidor.
 
 ### Validación
-- ✓ Todas las vistas en /views/ usando EJS.
-- ✓ Partials para componentes reutilizables (navbar, header, footer).
-- ✓ Renderizado dinámico de catálogo, búsqueda, detalles.
+- Todas las vistas en /views/ usando EJS.
+- Partials para componentes reutilizables (navbar, header, footer).
+- Renderizado dinámico de catálogo, búsqueda, detalles.
 
 ---
 
@@ -124,7 +124,7 @@ Se requiere identificar libros de forma única en la base de datos.
 3. **Composite Key**: ISBN + versión.
 
 ### Decisión
-**ISBN como Primary Key** ✓
+**ISBN como Primary Key**
 
 ### Justificación
 - **Requisito explícito**: El ejercicio especifica ISBN como PK principal.
@@ -139,9 +139,9 @@ Se requiere identificar libros de forma única en la base de datos.
 - **Actualización**: Raras veces se actualiza ISBN.
 
 ### Validación
-- ✓ Tabla books con isbn VARCHAR(20) PRIMARY KEY.
-- ✓ Validación en authService.createBook().
-- ✓ FK de otras tablas apuntan a ISBN.
+- Tabla books con isbn VARCHAR(20) PRIMARY KEY.
+- Validación en authService.createBook().
+- FK de otras tablas apuntan a ISBN.
 
 ---
 
@@ -160,7 +160,7 @@ Un libro puede tener múltiples autores, géneros, imágenes y conceptos. Estos 
 4. **Denormalización**: Datos redundantes para performance.
 
 ### Decisión
-**Tablas puente normalizadas en 4FN** ✓
+**Tablas puente normalizadas en 4FN**
 
 ### Justificación
 - **Integridad referencial**: Constraints mantienen consistencia.
@@ -186,9 +186,9 @@ concepts (concept_id, name, ...)
 - **Performance**: Índices en FK y PK de tablas puente.
 
 ### Validación
-- ✓ 4FN alcanzada en /db/01_schema.sql.
-- ✓ Relaciones documentadas en comentarios de tablas.
-- ✓ Integridad referencial con ON DELETE CASCADE.
+- 4FN alcanzada en /db/01_schema.sql.
+- Relaciones documentadas en comentarios de tablas.
+- Integridad referencial con ON DELETE CASCADE.
 
 ---
 
@@ -206,7 +206,7 @@ Se requiere autenticar usuarios y mantener su estado durante la navegación.
 3. **OAuth 2.0**: Delegación a proveedor externo.
 
 ### Decisión
-**express-session con almacenamiento en PostgreSQL** ✓
+**express-session con almacenamiento en PostgreSQL**
 
 ### Justificación
 - **Requisito monolito**: Sessions encajan mejor con server-side.
@@ -221,9 +221,9 @@ Se requiere autenticar usuarios y mantener su estado durante la navegación.
 - **Duration**: 24 horas (configurable via .env).
 
 ### Validación
-- ✓ Session config en app.js.
-- ✓ Tabla session creada automáticamente.
-- ✓ Middleware attachUserToLocals() en cada request.
+- Session config en app.js.
+- Tabla session creada automáticamente.
+- Middleware attachUserToLocals() en cada request.
 
 ---
 
@@ -242,7 +242,7 @@ Las contraseñas de usuarios deben almacenarse de forma segura.
 4. **PBKDF2**: Estándar NIST.
 
 ### Decisión
-**bcrypt con 10 rounds** ✓
+**bcrypt con 10 rounds**
 
 ### Justificación
 - **Estándar de facto**: Ampliamente usado y confiable.
@@ -256,9 +256,9 @@ Las contraseñas de usuarios deben almacenarse de forma segura.
 - **Configuración**: Via variable de entorno BCRYPT_ROUNDS.
 
 ### Validación
-- ✓ authService.hashPassword() usa bcrypt.
-- ✓ authService.verifyPassword() compara contra hash.
-- ✓ Contraseñas nunca se almacenan en BD en texto plano.
+- authService.hashPassword() usa bcrypt.
+- authService.verifyPassword() compara contra hash.
+- Contraseñas nunca se almacenan en BD en texto plano.
 
 ---
 

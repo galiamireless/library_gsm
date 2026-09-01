@@ -8,10 +8,7 @@ Documento que registra las interacciones simuladas entre el desarrollador y la I
 
 ### Prompt 1.1: Arquitectura General
 ```
-User: "Necesito crear una aplicación de gestión de librería con arquitectura monolítica, 
-       patrón MVC y base de datos en 4FN. Usa Node.js, Express, PostgreSQL sin ORMs. 
-       Debe tener autenticación, CRUD de libros, gestión de conceptos y validaciones 
-       de seguridad (SQL injection, XSS). ¿Por dónde empiezo?"
+User: "Necesito crear una aplicación de gestión de librería con arquitectura monolítica, patrón MVC y base de datos en 4FN. Usa Node.js, Express, PostgreSQL sin ORMs.  Debe tener autenticación, CRUD de libros, gestión de conceptos y validaciones de seguridad (SQL injection, XSS). ¿Por dónde empiezo?"
 
 AI: "Te recomiendo este plan:
     1. Diseño de esquema PostgreSQL en 4FN (eliminar dependencias multivaluadas)
@@ -29,8 +26,7 @@ AI: "Te recomiendo este plan:
     views/ → EJS templates
     db/ → SQL scripts"
 
-User Response: "Perfecto. Empiezo con el esquema SQL. ¿Qué validaciones mínimas necesito 
-               en la tabla users?"
+User Response: "Perfecto. Empiezo con el esquema SQL. ¿Qué validaciones mínimas necesito en la tabla users?"
 
 AI: "En tabla users:
     - username: VARCHAR(50) UNIQUE, NOT NULL
