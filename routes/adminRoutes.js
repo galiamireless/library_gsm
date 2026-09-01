@@ -45,6 +45,34 @@ router.get('/dashboard', isAdmin, asyncHandler(async (req, res) => {
     });
 }));
 
+// GET: Listar libros para gestión administrativa
+router.get('/books', isAdmin, asyncHandler(async (req, res) => {
+    const searchTerm = (req.query.q || '').trim();
+    const page = parseInt(req.query.page) || 1;
+    const perPage = 10;
+
+    let result;
+    if (searchTerm) {
+        result = await bookService.searchBooks(searchTerm, 0, 999999, page, perPage);
+    } else {
+        result = await bookService.getAllBooks(page, perPage);
+    }
+
+    const books = result.success ? result.books || [] : [];
+    const totalCount = result.success ? result.totalCount || 0 : 0;
+    const totalPages = Math.max(1, Math.ceil(totalCount / perPage));
+
+    res.render('admin/books_list', {
+        title: 'Manage Books',
+        books,
+        searchTerm,
+        page,
+        perPage,
+        totalPages,
+        totalCount
+    });
+}));
+
 // GET: Formulario para crear libro
 router.get('/books/new', isAdmin, asyncHandler(async (req, res) => {
     const formatsResult = await db.query('SELECT format_id, name FROM formats ORDER BY name');
