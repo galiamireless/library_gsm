@@ -5,7 +5,11 @@
 
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const crypto = require('crypto');
+
+const uploadDirectory = path.join(__dirname, '../uploads');
+fs.mkdirSync(uploadDirectory, { recursive: true });
 
 const allowedMimeTypes = new Map([
     ['image/jpeg', '.jpg'],
@@ -18,11 +22,12 @@ const maxFileSize = parseInt(process.env.MAX_FILE_SIZE) || 2 * 1024 * 1024;
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, '../uploads'));
+        fs.mkdirSync(uploadDirectory, { recursive: true });
+        cb(null, uploadDirectory);
     },
     filename: (req, file, cb) => {
-        const mimeType = file.mimetype.toLowerCase();
-        const extension = allowedMimeTypes.get(mimeType) || '.jpg';
+        const mimeType = file.mimetype ? file.mimetype.toLowerCase() : 'image/jpeg';
+        const extension = allowedMimeTypes.get(mimeType) || path.extname(file.originalname || '').toLowerCase() || '.jpg';
         const safeToken = crypto.randomBytes(12).toString('hex');
         cb(null, `${Date.now()}-${safeToken}${extension}`);
     }
@@ -31,9 +36,14 @@ const storage = multer.diskStorage({
 const fileFilter = (req, file, cb) => {
     const mimeType = file.mimetype ? file.mimetype.toLowerCase() : '';
     const extension = path.extname(file.originalname || '').toLowerCase();
+    const expectedExtension = allowedMimeTypes.get(mimeType);
 
-    if (!allowedMimeTypes.has(mimeType) || !allowedExtensions.has(extension)) {
+    if (!expectedExtension || !allowedExtensions.has(extension)) {
         return cb(new Error('Invalid file type: only JPG, PNG and WebP are allowed.'), false);
+    }
+
+    if (expectedExtension !== extension && extension !== '.jpeg') {
+        return cb(new Error('File extension does not match the uploaded image type.'), false);
     }
 
     cb(null, true);

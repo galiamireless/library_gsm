@@ -128,17 +128,17 @@ VALUES
 ('9780135213294', 10, 'Serverless elimina la necesidad de administrar servidores.')
 ON CONFLICT (isbn, concept_id) DO NOTHING;
 
-INSERT INTO book_images (isbn, image_url, alt_text, is_cover, source_type)
+INSERT INTO book_images (isbn, image_url, alt_text, is_cover, source_type, source_url)
 VALUES
-('9780374175398', '/uploads/9780374175398.jpg', 'Portada A Brief History of Time', TRUE, 'upload'),
-('9780394752778', '/uploads/9780394752778.jpg', 'Portada Cosmos', TRUE, 'upload'),
-('9780465025275', '/uploads/9780465025275.jpg', 'Portada QED', TRUE, 'upload'),
-('9780199297948', '/uploads/9780199297948.jpg', 'Portada The Beginning of Infinity', TRUE, 'upload'),
-('9780393635066', '/uploads/9780393635066.jpg', 'Portada Astrophysics for People in a Hurry', TRUE, 'upload'),
-('9781480583597', '/uploads/9781480583597.jpg', 'Portada Dark Matter and Dark Energy', TRUE, 'upload'),
-('9780393243529', '/uploads/9780393243529.jpg', 'Portada The Elegant Universe', TRUE, 'upload'),
-('9780132350884', '/uploads/9780132350884.jpg', 'Portada Clean Code', TRUE, 'upload'),
-('9781119266303', '/uploads/9781119266303.jpg', 'Portada JavaScript: The Definitive Guide', TRUE, 'upload'),
-('9781491952023', '/uploads/9781491952023.jpg', 'Portada Effective Python', TRUE, 'upload'),
-('9780135213294', '/uploads/9780135213294.jpg', 'Portada Cloud Computing Comprehensive Guide', TRUE, 'upload')
+('9780374175398', '/uploads/9780374175398.jpg', 'Portada A Brief History of Time', TRUE, 'upload', '/uploads/9780374175398.jpg'),
+('9780394752778', '/uploads/9780394752778.jpg', 'Portada Cosmos', TRUE, 'upload', '/uploads/9780394752778.jpg'),
+('9780465025275', '/uploads/9780465025275.jpg', 'Portada QED', TRUE, 'upload', '/uploads/9780465025275.jpg'),
+('9780199297948', '/uploads/9780199297948.jpg', 'Portada The Beginning of Infinity', TRUE, 'upload', '/uploads/9780199297948.jpg'),
+('9780393635066', '/uploads/9780393635066.jpg', 'Portada Astrophysics for People in a Hurry', TRUE, 'upload', '/uploads/9780393635066.jpg'),
+('9781480583597', '/uploads/9781480583597.jpg', 'Portada Dark Matter and Dark Energy', TRUE, 'upload', '/uploads/9781480583597.jpg'),
+('9780393243529', '/uploads/9780393243529.jpg', 'Portada The Elegant Universe', TRUE, 'upload', '/uploads/9780393243529.jpg'),
+('9780132350884', '/uploads/9780132350884.jpg', 'Portada Clean Code', TRUE, 'upload', '/uploads/9780132350884.jpg'),
+('9781119266303', '/uploads/9781119266303.jpg', 'Portada JavaScript: The Definitive Guide', TRUE, 'upload', '/uploads/9781119266303.jpg'),
+('9781491952023', '/uploads/9781491952023.jpg', 'Portada Effective Python', TRUE, 'upload', '/uploads/9781491952023.jpg'),
+('9780135213294', '/uploads/9780135213294.jpg', 'Portada Cloud Computing Comprehensive Guide', TRUE, 'upload', '/uploads/9780135213294.jpg')
 ON CONFLICT DO NOTHING;

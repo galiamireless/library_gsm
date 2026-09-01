@@ -114,17 +114,17 @@ VALUES
 ('9780135213294', (SELECT concept_id FROM concepts WHERE name = 'Serverless'), 'Modelo de despliegue donde la operación de infraestructura se abstrae completamente.')
 ON CONFLICT (isbn, concept_id) DO NOTHING;
 
-INSERT INTO book_images (isbn, image_url, alt_text, is_cover, source_type)
+INSERT INTO book_images (isbn, image_url, alt_text, is_cover, source_type, source_url)
 VALUES
-('9780132350884', '/uploads/9780132350884.jpg', 'Portada Clean Code', TRUE, 'upload'),
-('9780201616224', '/uploads/9780201616224.jpg', 'Portada The Pragmatic Programmer', TRUE, 'upload'),
-('9781119266303', '/uploads/9781119266303.jpg', 'Portada JavaScript: The Definitive Guide', TRUE, 'upload'),
-('9781491952023', '/uploads/9781491952023.jpg', 'Portada Effective Python', TRUE, 'upload'),
-('9780134685991', '/uploads/9780134685991.jpg', 'Portada Effective Java', TRUE, 'upload'),
-('9780374175398', '/uploads/9780374175398.jpg', 'Portada A Brief History of Time', TRUE, 'upload'),
-('9780394752778', '/uploads/9780394752778.jpg', 'Portada Cosmos', TRUE, 'upload'),
-('9781617293360', '/uploads/9781617293360.jpg', 'Portada Docker in Action', TRUE, 'upload'),
-('9781492032675', '/uploads/9781492032675.jpg', 'Portada Kubernetes Up and Running', TRUE, 'upload'),
-('9781492054861', '/uploads/9781492054861.jpg', 'Portada Terraform Up & Running', TRUE, 'upload'),
-('9780135213294', '/uploads/9780135213294.jpg', 'Portada Cloud Computing Comprehensive Guide', TRUE, 'upload')
+('9780132350884', '/uploads/9780132350884.jpg', 'Portada Clean Code', TRUE, 'upload', '/uploads/9780132350884.jpg'),
+('9780201616224', '/uploads/9780201616224.jpg', 'Portada The Pragmatic Programmer', TRUE, 'upload', '/uploads/9780201616224.jpg'),
+('9781119266303', '/uploads/9781119266303.jpg', 'Portada JavaScript: The Definitive Guide', TRUE, 'upload', '/uploads/9781119266303.jpg'),
+('9781491952023', '/uploads/9781491952023.jpg', 'Portada Effective Python', TRUE, 'upload', '/uploads/9781491952023.jpg'),
+('9780134685991', '/uploads/9780134685991.jpg', 'Portada Effective Java', TRUE, 'upload', '/uploads/9780134685991.jpg'),
+('9780374175398', '/uploads/9780374175398.jpg', 'Portada A Brief History of Time', TRUE, 'upload', '/uploads/9780374175398.jpg'),
+('9780394752778', '/uploads/9780394752778.jpg', 'Portada Cosmos', TRUE, 'upload', '/uploads/9780394752778.jpg'),
+('9781617293360', '/uploads/9781617293360.jpg', 'Portada Docker in Action', TRUE, 'upload', '/uploads/9781617293360.jpg'),
+('9781492032675', '/uploads/9781492032675.jpg', 'Portada Kubernetes Up and Running', TRUE, 'upload', '/uploads/9781492032675.jpg'),
+('9781492054861', '/uploads/9781492054861.jpg', 'Portada Terraform Up & Running', TRUE, 'upload', '/uploads/9781492054861.jpg'),
+('9780135213294', '/uploads/9780135213294.jpg', 'Portada Cloud Computing Comprehensive Guide', TRUE, 'upload', '/uploads/9780135213294.jpg')
 ON CONFLICT DO NOTHING;

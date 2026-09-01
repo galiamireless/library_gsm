@@ -14,6 +14,25 @@ const { isAdmin } = require('../middleware/authMiddleware');
 const { uploadSingle, handleUploadError } = require('../middleware/uploadMiddleware');
 const { asyncHandler } = require('../middleware/errorMiddleware');
 
+function normalizeCoverFlag(value) {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+        return ['true', '1', 'yes', 'on'].includes(normalized);
+    }
+    return false;
+}
+
+function normalizeImageUrl(value) {
+    if (!value) return null;
+    const trimmed = String(value).trim();
+    if (!trimmed) return null;
+    if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith('/') || trimmed.startsWith('./')) {
+        return trimmed;
+    }
+    return null;
+}
+
 // GET: Dashboard Administrativo
 router.get('/dashboard', isAdmin, asyncHandler(async (req, res) => {
     const statsResult = await bookService.getInventoryStats();
@@ -119,24 +138,26 @@ router.post('/books/:isbn/upload-image', isAdmin, uploadSingle, handleUploadErro
     const { isbn } = req.params;
     const { image_url, alt_text, is_cover } = req.body;
 
-    let imageUrl = image_url || null;
     let finalFile = req.file || null;
+    const normalizedImageUrl = normalizeImageUrl(image_url);
 
-    if (!finalFile && !imageUrl) {
+    if (!finalFile && !normalizedImageUrl) {
         return res.status(400).json({
             success: false,
-            message: 'No file uploaded or image URL provided'
+            message: 'No file uploaded or valid image URL provided'
         });
     }
 
-    const altText = alt_text || 'Book cover';
-    const coverFlag = is_cover === 'true';
+    const altText = (alt_text || '').trim() || 'Book cover';
+    const coverFlag = normalizeCoverFlag(is_cover);
     const sourceType = finalFile ? 'upload' : 'url';
     const storedFilename = finalFile ? finalFile.filename : null;
-    const sourceUrl = finalFile ? `/uploads/${finalFile.filename}` : imageUrl;
+    let imageUrl = normalizedImageUrl || null;
+    let sourceUrl = normalizedImageUrl || null;
 
     if (finalFile) {
         imageUrl = `/uploads/${finalFile.filename}`;
+        sourceUrl = imageUrl;
     }
 
     try {
@@ -151,7 +172,7 @@ router.post('/books/:isbn/upload-image', isAdmin, uploadSingle, handleUploadErro
                 altText,
                 coverFlag,
                 sourceType,
-                imageUrl,
+                sourceUrl,
                 finalFile ? finalFile.originalname : null,
                 storedFilename,
                 finalFile ? finalFile.mimetype : null,
